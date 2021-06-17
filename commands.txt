@@ -1,0 +1,15 @@
+# Build base image
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile .
+
+# Deploy Master Node (NameNode)
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-hadoop-namenode:1.0.0-snapshot --file Dockerfile .
+\helm\helm upgrade pegacorn-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-namenode,hostPathNameDir=/data/hadoop-name,hostPathDataDir=/data/hadoop-data,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+
+# Deploy Worker Nodes (DataNodes)
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-hadoop-datanode:1.0.0-snapshot --file Dockerfile .
+
+# Retrieve CLUSTER-IP of NameNode service
+kubectl get svc pegacorn-namenode -n site-a --no-headers | awk {'print $3'}
+
+\helm\helm upgrade pegacorn-datanode-site-a --install --namespace site-a --set serviceName=pegacorn-datanode,hostPathNameDir=/data/hadoop-name,hostPathDataDir=/data/hadoop-data,clusterIP=10.107.247.45,imageTag=1.0.0-snapshot,numOfPods=3 helm
