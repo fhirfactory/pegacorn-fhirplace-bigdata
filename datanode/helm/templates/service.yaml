@@ -21,7 +21,7 @@ spec:
   - name: datanode
     port: 9864
     protocol: TCP
-    targetPort: 9864
+    # targetPort: 9864
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}

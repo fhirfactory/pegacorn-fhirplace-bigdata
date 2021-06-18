@@ -44,8 +44,6 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_NAME}:8020
     
     # HDFS
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.data.dir file:///hadoop/dfs/data
-    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 3
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0

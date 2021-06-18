@@ -84,7 +84,7 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-hadoop-datanode:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
@@ -108,15 +108,10 @@ spec:
         securityContext:
           privileged: false
         volumeMounts:
-        - name: namenode-dir
-          mountPath: /hadoop/dfs/name
         - name: datanode-dir
-          mountPath: /hadoop/dfs/data   
+          mountPath: /hadoop/dfs/data
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
-      - name: namenode-dir
-        hostPath:
-          path: {{ .Values.hostPathNameDir }}
       - name: datanode-dir
         hostPath:
           path: {{ .Values.hostPathDataDir }}

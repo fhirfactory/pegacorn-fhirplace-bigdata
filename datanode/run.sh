@@ -35,6 +35,11 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
 
     # CORE
     addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:8020
+
+    # HDFS
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.name.dir file:///hadoop/dfs/name
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.data.dir file:///hadoop/dfs/data
+    
 fi
 
 
