@@ -115,9 +115,9 @@ spec:
           privileged: false
         volumeMounts:
         - name: namenode-dir
-          mountPath: /hadoop/dfs/name
+          mountPath: /hadoop/dfs/namenode
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
       - name: namenode-dir
         hostPath:
-          path: {{ .Values.hostPathNameDir }}
+          path: {{ .Values.hostPathNamenode }}

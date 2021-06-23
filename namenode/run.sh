@@ -51,8 +51,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
 
-    # YARN
+    # YARN ---- Not required in current release <configured for future use>
     addProperty /etc/hadoop/yarn-site.xml yarn.acl.enable 0
     addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.hostname ${MY_POD_IP}
     addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.aux-services mapreduce_shuffle
@@ -63,35 +64,12 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.bind-host 0.0.0.0
     addProperty /etc/hadoop/yarn-site.xml yarn.timeline-service.bind-host 0.0.0.0
 
-    # MAPRED
+    # MAPRED ---- Not required in current release <configured for future use>
     addProperty /etc/hadoop/mapred-site.xml mapreduce.framework.name yarn
     addProperty /etc/hadoop/mapred-site.xml yarn.app.mapreduce.am.env HADOOP_MAPRED_HOME=$HADOOP_HOME
     addProperty /etc/hadoop/mapred-site.xml mapreduce.map.env HADOOP_MAPRED_HOME=$HADOOP_HOME
     addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.env HADOOP_MAPRED_HOME=$HADOOP_HOME
-    addProperty /etc/hadoop/mapred-site.xml yarn.app.mapreduce.am.resource.mb 1024
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.map.memory.mb 1024
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.memory.mb 1024
-    addProperty /etc/hadoop/mapred-site.xml yarn.nodemanager.bind-host 0.0.0.0
-fi
-
-if [ -n "$GANGLIA_HOST" ]; then
-    mv /etc/hadoop/hadoop-metrics.properties /etc/hadoop/hadoop-metrics.properties.orig
-    mv /etc/hadoop/hadoop-metrics2.properties /etc/hadoop/hadoop-metrics2.properties.orig
-
-    for module in mapred jvm rpc ugi; do
-        echo "$module.class=org.apache.hadoop.metrics.ganglia.GangliaContext31"
-        echo "$module.period=10"
-        echo "$module.servers=$GANGLIA_HOST:8649"
-    done > /etc/hadoop/hadoop-metrics.properties
-    
-    for module in namenode datanode resourcemanager nodemanager mrappmaster jobhistoryserver; do
-        echo "$module.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31"
-        echo "$module.sink.ganglia.period=10"
-        echo "$module.sink.ganglia.supportsparse=true"
-        echo "$module.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both"
-        echo "$module.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40"
-        echo "$module.sink.ganglia.servers=$GANGLIA_HOST:8649"
-    done > /etc/hadoop/hadoop-metrics2.properties
+    addProperty /etc/hadoop/mapred-site.xml mapreduce.jobtracker.address 8021
 fi
 
 function wait_for_it()
@@ -151,3 +129,5 @@ if [ "`ls -A $namedir`" == "" ]; then
 fi
 
 $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR namenode
+
+exec $@

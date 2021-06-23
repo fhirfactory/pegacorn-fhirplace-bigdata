@@ -3,7 +3,7 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 
 # Deploy Master Node (NameNode)
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
-\helm\helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNameDir=/data/hadoop-name,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
+\helm\helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNamenode=/data/hadoop-namenode,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 
 # Deploy Worker Nodes (DataNodes)
@@ -12,5 +12,5 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 # Retrieve CLUSTER-IP of NameNode service
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
-\helm\helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDataDir=/data/hadoop-data-alpha,clusterIP=10.98.38.87,imageTag=1.0.0-snapshot,numOfPods=1 helm
-\helm\helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDataDir=/data/hadoop-data-beta,clusterIP=10.98.38.87,imageTag=1.0.0-snapshot,numOfPods=1 helm
+\helm\helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDatanode=/data/hadoop-datanode-alpha,clusterIP={cluster-ip-address},imageTag=1.0.0-snapshot,numOfPods=1 helm
+\helm\helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,clusterIP={cluster-ip-address},imageTag=1.0.0-snapshot,numOfPods=1 helm

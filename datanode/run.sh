@@ -29,6 +29,7 @@ function configure() {
 }
 
 configure /etc/hadoop/core-site.xml core CORE_CONF
+configure /etc/hadoop/hdfs-site.xml hdfs HDFS_CONF
 
 if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
@@ -37,8 +38,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:8020
 
     # HDFS
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.name.dir file:///hadoop/dfs/name
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.data.dir file:///hadoop/dfs/data
+    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
     
 fi
 
@@ -50,3 +50,5 @@ if [ ! -d $datadir ]; then
 fi
 
 $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
+
+exec $@

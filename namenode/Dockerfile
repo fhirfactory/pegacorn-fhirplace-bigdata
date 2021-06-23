@@ -3,9 +3,9 @@ FROM fhirfactory/pegacorn-base-hadoop:1.0.0
 HEALTHCHECK CMD curl -f http://localhost:9870/ || exit 1
 
 ENV MULTIHOMED_NETWORK=1
-ENV HDFS_CONF_dfs_namenode_name_dir=file:///hadoop/dfs/name
+ENV HDFS_CONF_dfs_namenode_name_dir=file:///hadoop/dfs/namenode
 
-RUN mkdir -p /hadoop/dfs/name
+RUN mkdir -p /hadoop/dfs/namenode
 
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
