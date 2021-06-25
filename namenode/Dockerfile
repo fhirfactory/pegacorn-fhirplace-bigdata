@@ -10,6 +10,10 @@ RUN mkdir -p /hadoop/dfs/namenode
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 
+# Add jboss user to HDFS
+RUN addgroup hadoop
+RUN adduser jboss --ingroup hadoop --no-create-home --disabled-password --gecos ""
+
 ARG IMAGE_BUILD_TIMESTAMP
 ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
