@@ -86,10 +86,6 @@ spec:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
         image: {{ .Values.dockerRepo }}pegacorn-fhirplace-namenode:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/bash","-c","echo Configure HDFS file permissions for jboss user; sleep 10; /opt/hadoop-3.3.0/bin/hdfs dfs -mkdir -p /data/pegacorn; /opt/hadoop-3.3.0/bin/hdfs dfs -chown -R jboss:hadoop /data/pegacorn; /opt/hadoop-3.3.0/bin/hdfs dfs -chmod -R 755 /data/pegacorn"]
         livenessProbe:
           tcpSocket:
             port: 9870

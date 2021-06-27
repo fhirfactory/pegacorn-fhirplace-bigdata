@@ -11,8 +11,9 @@ COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 
 # Add jboss user to HDFS
-RUN addgroup hadoop
-RUN adduser jboss --ingroup hadoop --no-create-home --disabled-password --gecos ""
+RUN addgroup supergroup
+RUN adduser jboss --no-create-home --disabled-password --gecos ""
+RUN usermod -aG supergroup jboss
 
 ARG IMAGE_BUILD_TIMESTAMP
 ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
