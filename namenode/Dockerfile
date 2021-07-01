@@ -1,6 +1,6 @@
 FROM fhirfactory/pegacorn-base-hadoop:1.0.0
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install krb5-kdc krb5-admin-server nano
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install krb5-kdc krb5-admin-server
 
 HEALTHCHECK CMD curl -f http://localhost:9870/ || exit 1
 

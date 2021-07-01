@@ -3,6 +3,9 @@
 # Kerberos KDC server configuration
 # Ref: https://github.com/dosvath/kerberos-containers/blob/master/kdc-server/init-script.sh
 
+# kerberos client
+sed -i "s/localhost/${MY_POD_IP}/g" /etc/krb5.conf
+
 echo "==== Creating realm ==============================================================="
 echo "==================================================================================="
 # TDL -- Use HELM env variables for passwords
@@ -26,9 +29,7 @@ echo ""
 kadmin.local -q "addprinc -pw $MASTER_PASSWORD $KADMIN_PRINCIPAL_FULL"
 echo ""
 
-# krb5kdc
-# kadmind -nofork
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey root/$(hostname -f)@PEGACORN-FHIRPLACE-NAMENODE.SITE-A"
+kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey root/$(hostname -f)@$REALM"
 kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k root.hdfs.keytab root/$(hostname -f)"
 mv root.hdfs.keytab ${KEYTAB_DIR}
 chmod 400 ${KEYTAB_DIR}/root.hdfs.keytab
@@ -90,8 +91,8 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file /etc/security/keytabs/root.hdfs.keytab
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal root/$(hostname -f)@PEGACORN-FHIRPLACE-NAMENODE.SITE-A
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal root/$(hostname -f)@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
 
     # YARN ---- Not required in current release <configured for future use>

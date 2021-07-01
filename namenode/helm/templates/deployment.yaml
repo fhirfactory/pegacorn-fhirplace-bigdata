@@ -116,8 +116,13 @@ spec:
         volumeMounts:
         - name: namenode-dir
           mountPath: /hadoop/dfs/namenode
+        - name: keytabs
+          mountPath: /etc/security/keytabs
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
       - name: namenode-dir
         hostPath:
           path: {{ .Values.hostPathNamenode }}
+      - name: keytabs
+        hostPath:
+          path: {{ .Values.hostPathKeytab }}
