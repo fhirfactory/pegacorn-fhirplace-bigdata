@@ -20,6 +20,10 @@ COPY kdc.conf /etc/krb5kdc/kdc.conf
 COPY krb5.conf /etc/krb5.conf
 RUN chmod -R 777 /etc/krb5kdc
 RUN mkdir -p /var/log/kerberos
+RUN mkdir -p /etc/hadoop/ssl
+RUN chmod -R 444 /etc/hadoop/ssl
+COPY ssl-client.xml /etc/hadoop/ssl-client.xml
+COPY ssl-server.xml /etc/hadoop/ssl-server.xml
 
 # Add jboss user to HDFS
 RUN addgroup pegacorn
@@ -30,6 +34,6 @@ ARG IMAGE_BUILD_TIMESTAMP
 ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
-EXPOSE 8020 9000 9870
+EXPOSE 8020 9000 9870 
 
 CMD ["/run.sh"]

@@ -1,38 +1,10 @@
 #!/bin/bash
 
-KADMIN_PASSWORD=Peg@corn
-KADMIN_PRINCIPAL=root/admin
 REALM=PEGACORN-FHIRPLACE-NAMENODE.SITE-A
-KADMIN_PRINCIPAL_FULL=$KADMIN_PRINCIPAL@$REALM
 
 # kerberos client
-echo 10.1.217.166 $REALM >> /etc/hosts
-sed -i "s/localhost/10.1.217.166/g" /etc/krb5.conf
-# chmod 400 ${KEYTAB_DIR}/root.hdfs.keytab
-
-echo "==================================================================================="
-echo "==== Kerberos Client =============================================================="
-echo "==================================================================================="
-KADMIN_PRINCIPAL_FULL=$KADMIN_PRINCIPAL@$REALM
-
-echo "REALM: $REALM"
-echo "KADMIN_PRINCIPAL_FULL: $KADMIN_PRINCIPAL_FULL"
-echo "KADMIN_PASSWORD: $KADMIN_PASSWORD"
-echo ""
-
-function kadminCommand {
-    kadmin -p $KADMIN_PRINCIPAL_FULL -w $KADMIN_PASSWORD -q "$1"
-}
-
-echo "==================================================================================="
-echo "==== Testing ======================================================================"
-echo "==================================================================================="
-until kadminCommand "list_principals $KADMIN_PRINCIPAL_FULL"; do
-  >&2 echo "KDC is unavailable - sleeping 1 sec"
-  sleep 1
-done
-echo "KDC and Kadmin are operational"
-echo ""
+echo $NAMENODE_IP $REALM >> /etc/hosts
+sed -i "s/localhost/$NAMENODE_IP/g" /etc/krb5.conf
 
 function addProperty() {
   local path=$1
@@ -72,15 +44,24 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:8020
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
-    # addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal root/$(hostname -f)@PEGACORN-FHIRPLACE-NAMENODE.SITE-A
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal root/pegacorn-fhirplace-namenode-5968487d47-fh7qj@$REALM
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal alpha/admin@$REALM
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/alpha.hdfs.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.address 0.0.0.0:50010
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.http.address 0.0.0.0:50075
+    addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection integrity
+    addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
+    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.cluster.administrators root
+    addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
 fi
 
 

@@ -31,8 +31,14 @@ echo ""
 
 kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey root/$(hostname -f)@$REALM"
 kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k root.hdfs.keytab root/$(hostname -f)"
+# secure alpha datanode
+kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey alpha/admin@$REALM"
+kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k alpha.hdfs.keytab alpha/admin"
+
 mv root.hdfs.keytab ${KEYTAB_DIR}
+mv alpha.hdfs.keytab ${KEYTAB_DIR}
 chmod 400 ${KEYTAB_DIR}/root.hdfs.keytab
+chmod 400 ${KEYTAB_DIR}/alpha.hdfs.keytab
 
 ### Start entrypoint.sh
 ### https://github.com/big-data-europe/docker-hadoop/blob/master/base/entrypoint.sh
@@ -80,6 +86,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
     # addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local "RULE:[2:$1@$0]([jt]t@.*PEGACORN-FHIRPLACE-NAMENODE.SITE-A)s/.*/root/"
     addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local DEFAULT
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
+    
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
@@ -92,8 +101,11 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/alpha.hdfs.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal root/$(hostname -f)@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
 
     # YARN ---- Not required in current release <configured for future use>
     addProperty /etc/hadoop/yarn-site.xml yarn.acl.enable 0

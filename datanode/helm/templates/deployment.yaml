@@ -77,6 +77,8 @@ spec:
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
         - name: CLUSTER_IP
           value: {{ .Values.clusterIP }}
+        - name: NAMENODE_IP
+          value: {{ .Values.masterPodIP }}
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits
@@ -88,7 +90,7 @@ spec:
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
-            port: 9864
+            port: 9865
           initialDelaySeconds: 15
         name: hadoop
         ports:
@@ -98,12 +100,12 @@ spec:
         - containerPort: 8778
           name: jolokia
           protocol: TCP
-        - containerPort: 9864
+        - containerPort: 9865
           name: datanode
           protocol: TCP
         readinessProbe:
           tcpSocket:
-            port: 9864
+            port: 9865
           initialDelaySeconds: 15
         securityContext:
           privileged: false
@@ -112,6 +114,8 @@ spec:
           mountPath: /hadoop/dfs/datanode
         - name: keytabs
           mountPath: /etc/security/keytabs
+        - name: config
+          mountPath: /etc/hadoop/ssl
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
       - name: datanode-dir
@@ -120,3 +124,6 @@ spec:
       - name: keytabs
         hostPath:
           path: {{ .Values.hostPathKeytab }}
+      - name: config
+        hostPath:
+          path: {{ .Values.hostPathConfig }}

@@ -19,7 +19,7 @@ metadata:
 spec:
   ports:   
   - name: datanode
-    port: 9864
+    port: 9865
     protocol: TCP
   selector:
     app: {{ .Values.serviceName }}
