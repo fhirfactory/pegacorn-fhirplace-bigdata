@@ -3,7 +3,7 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 
 # Deploy Master Node (NameNode)
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
-\helm\helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNamenode=/data/hadoop-namenode,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,imagePullPolicy=Never,hostPathNamenode=/data/hadoop-namenode,hostPathKeytab=/data/hadoop-keytab,hostPathConfig=/data/bigdata,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 
 # Deploy Worker Nodes (DataNodes)

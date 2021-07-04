@@ -88,7 +88,7 @@ spec:
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
-            port: 9870
+            port: 9871
           initialDelaySeconds: 15
         name: hadoop
         ports:
@@ -104,12 +104,12 @@ spec:
         - containerPort: 9000
           name: master-port
           protocol: TCP
-        - containerPort: 9870
+        - containerPort: 9871
           name: hadoop-web
           protocol: TCP
         readinessProbe:
           tcpSocket:
-            port: 9870
+            port: 9871
           initialDelaySeconds: 15
         securityContext:
           privileged: false

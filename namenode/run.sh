@@ -4,7 +4,11 @@
 # Ref: https://github.com/dosvath/kerberos-containers/blob/master/kdc-server/init-script.sh
 
 # kerberos client
-sed -i "s/localhost/${MY_POD_IP}/g" /etc/krb5.conf
+sed -i "s/localhost/${MY_POD_NAME}/g" /etc/krb5.conf
+
+# certificates
+cp /etc/hadoop/ssl/namenode.crt /usr/local/share/ca-certificates
+update-ca-certificates --verbose
 
 echo "==== Creating realm ==============================================================="
 echo "==================================================================================="
@@ -29,8 +33,8 @@ echo ""
 kadmin.local -q "addprinc -pw $MASTER_PASSWORD $KADMIN_PRINCIPAL_FULL"
 echo ""
 
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey root/$(hostname -f)@$REALM"
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k root.hdfs.keytab root/$(hostname -f)"
+kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey jboss/admin@$REALM"
+kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k root.hdfs.keytab jboss/admin"
 # secure alpha datanode
 kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey alpha/admin@$REALM"
 kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k alpha.hdfs.keytab alpha/admin"
@@ -84,10 +88,12 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_NAME}:8020
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
-    # addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local "RULE:[2:$1@$0]([jt]t@.*PEGACORN-FHIRPLACE-NAMENODE.SITE-A)s/.*/root/"
     addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local DEFAULT
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
     
 
     # HDFS
@@ -95,6 +101,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host 0.0.0.0
+    addProperty /etc/hadoop/hdfs-site.xml dfs.https.port 50470
+    addProperty /etc/hadoop/hdfs-site.xml dfs.https.address ${MY_POD_NAME}:50470
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address 0.0.0.0:9871
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
@@ -102,10 +111,11 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/alpha.hdfs.keytab
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal root/$(hostname -f)@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal jboss/admin@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
 
     # YARN ---- Not required in current release <configured for future use>
     addProperty /etc/hadoop/yarn-site.xml yarn.acl.enable 0

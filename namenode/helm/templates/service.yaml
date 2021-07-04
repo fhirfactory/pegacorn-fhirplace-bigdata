@@ -23,9 +23,9 @@ spec:
     protocol: TCP
     targetPort: 8020
   - name: hadoop-web
-    port: 9870
+    port: 9871
     protocol: TCP
-    targetPort: 9870
+    targetPort: 9871
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}

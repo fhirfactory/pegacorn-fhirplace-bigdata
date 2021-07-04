@@ -3,8 +3,12 @@
 REALM=PEGACORN-FHIRPLACE-NAMENODE.SITE-A
 
 # kerberos client
-echo $NAMENODE_IP $REALM >> /etc/hosts
-sed -i "s/localhost/$NAMENODE_IP/g" /etc/krb5.conf
+echo ${NAMENODE_IP} pegacorn-fhirplace-namenode.kerberos.com >> /etc/hosts
+sed -i "s/localhost/pegacorn-fhirplace-namenode.kerberos.com/g" /etc/krb5.conf
+
+# certificates
+cp /etc/hadoop/ssl/datanode.crt /usr/local/share/ca-certificates
+update-ca-certificates --verbose
 
 function addProperty() {
   local path=$1
@@ -46,6 +50,8 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
@@ -54,7 +60,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/alpha.hdfs.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.address 0.0.0.0:50010
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.http.address 0.0.0.0:50075
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.https.address 0.0.0.0:9865
     addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection integrity
     addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
@@ -62,6 +68,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.cluster.administrators root
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address 0.0.0.0:9871
 fi
 
 
