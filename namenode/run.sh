@@ -7,7 +7,7 @@
 sed -i "s/localhost/${MY_POD_NAME}/g" /etc/krb5.conf
 
 # certificates
-cp /etc/hadoop/ssl/namenode.crt /usr/local/share/ca-certificates
+cp /etc/hadoop/ssl/ca.crt /usr/local/share/ca-certificates
 update-ca-certificates --verbose
 
 echo "==== Creating realm ==============================================================="
@@ -92,18 +92,20 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
-    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.hostname.verifier ALLOW_ALL
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
     
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.lifeline.rpc-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host 0.0.0.0
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.port 50470
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.address ${MY_POD_NAME}:50470
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address 0.0.0.0:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_NAME}:9871
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
@@ -116,6 +118,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
     addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
 
     # YARN ---- Not required in current release <configured for future use>
     addProperty /etc/hadoop/yarn-site.xml yarn.acl.enable 0

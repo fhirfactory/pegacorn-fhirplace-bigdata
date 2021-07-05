@@ -7,7 +7,7 @@ echo ${NAMENODE_IP} pegacorn-fhirplace-namenode.kerberos.com >> /etc/hosts
 sed -i "s/localhost/pegacorn-fhirplace-namenode.kerberos.com/g" /etc/krb5.conf
 
 # certificates
-cp /etc/hadoop/ssl/datanode.crt /usr/local/share/ca-certificates
+cp /etc/hadoop/ssl/ca.crt /usr/local/share/ca-certificates
 update-ca-certificates --verbose
 
 function addProperty() {
@@ -50,8 +50,10 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
-    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.hostname.verifier ALLOW_ALL
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
@@ -68,7 +70,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.cluster.administrators root
     addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address 0.0.0.0:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${CLUSTER_IP}:9871
 fi
 
 
