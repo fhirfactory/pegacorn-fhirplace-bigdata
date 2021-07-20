@@ -6,6 +6,8 @@ cd to namenode folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
 \helm\helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNamenode=/data/hadoop-namenode,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
+In your hosts file - C:\Windows\System32\drivers\etc
+127.0.0.1 pegacorn-fhirplace-namenode.site-a
 
 # Deploy Worker Nodes (DataNodes)
 cd to datanode folder:
