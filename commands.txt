@@ -9,6 +9,9 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 In your hosts file - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-namenode.site-a
 
+To view HDFS Web - go to
+http://pegacorn-fhirplace-namenode.site-a:9870
+
 # Deploy Worker Nodes (DataNodes)
 cd to datanode folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode:1.0.0-snapshot --file Dockerfile .
