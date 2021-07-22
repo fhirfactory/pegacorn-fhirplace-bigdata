@@ -1,12 +1,15 @@
+(Run in cmd [Administrator mode] except where noted)
+
 # Build base image -- This was built and pushed to fhirfactory docker hub
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile .
 
 # Deploy Master Node (NameNode)
 cd to namenode folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
-\helm\helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNamenode=/data/hadoop-namenode,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
-In your hosts file - C:\Windows\System32\drivers\etc
+helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,hostPathNamenode=/data/hadoop-namenode,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-namenode.site-a
 
 To view HDFS Web - go to
@@ -16,13 +19,17 @@ http://pegacorn-fhirplace-namenode.site-a:9870
 cd to datanode folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode:1.0.0-snapshot --file Dockerfile .
 
-# Retrieve CLUSTER-IP of NameNode service -- provide the value in clusterIP for your datanodes
+# Retrieve CLUSTER-IP of NameNode service -- provide the value in clusterIP for your datanodes (run in BASH)
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
+
+RUN THIS IS A SEPARATE COMMANDLINE!!!
 Run the Alpine command to mount your volumes:
 docker container run --rm -it -v /:/host alpine
 chroot /host
 ***
 
-\helm\helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDatanode=/data/hadoop-datanode-alpha,clusterIP={cluster-ip-address-namenode},imageTag=1.0.0-snapshot,numOfPods=1 helm
-\helm\helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,clusterIP={cluster-ip-address-namenode},imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDatanode=/data/hadoop-datanode-alpha,clusterIP=[Put CLUSTER-IP here],imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,basePort=32510,basePortInsidePod=8443,clusterIP=[Put CLUSTER-IP here],imageTag=1.0.0-snapshot,numOfPods=1 helm
