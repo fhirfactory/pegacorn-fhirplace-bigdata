@@ -40,8 +40,22 @@ Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Win
 127.0.0.1 pegacorn-fhirplace-datanode-beta.site-a
 
 ================================================================================================================================================
-# Hadoop Database setup
+# Hadoop Database setup -- In order of resource compliance
+
+# Deploy Zookeeper Server (Zookeeper manages the HBase cluster)
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-zookeeper:1.0.0-snapshot --file Dockerfile .
+
+helm upgrade pegacorn-fhirplace-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKData=/data/zookeeper-data,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deploy HBase Master Server
 cd to hmaster folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .
+
+# Deploy HBase Master server (HBase master is the management server for Hbase Region clusters)
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .
+
+# Note this IP addresses
+nameNodeIP : kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
+zooKeeperIP : kubectl get svc pegacorn-fhirplace-zookeeper site-a --no-headers | awk {'print $3'}
+
+helm upgrade pegacorn-fhirplace-hbase-master-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-master,imagePullPolicy=Never,basePort=32410,hostPathHbMaster=/data/hbase-master,nameNodeIP=[Put CLUSTER-IP-NAMENODE],zooKeeperIP=[Put CLUSTER-IP-ZOOKEEPER],imageTag=1.0.0-snapshot,numOfPods=1 helm

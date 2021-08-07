@@ -29,7 +29,7 @@ spec:
     targetPort: 16030
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 1 .Values.basePort }} {{ end }}
   selector:
-    app: pegacorn-fhirplace-hbase
+    app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}
   {{- if (.Values.loadBalancerIP) }} 
   loadBalancerIP: {{ .Values.loadBalancerIP }}

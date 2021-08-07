@@ -22,7 +22,7 @@ spec:
     port: 9864
     protocol: TCP
   selector:
-    app: pegacorn-fhirplace-hadoop
+    app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}
   {{- if (.Values.loadBalancerIP) }} 
   loadBalancerIP: {{ .Values.loadBalancerIP }}

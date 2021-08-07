@@ -26,7 +26,7 @@ if [[ ! -f "$ZOO_CONF_DIR/zoo.cfg" ]]; then
         echo "admin.enableServer=$ZOO_ADMINSERVER_ENABLED"
     } >> "$CONFIG"
     if [[ -z $ZOO_SERVERS ]]; then
-      ZOO_SERVERS="server.1=$MY_POD_NAME:2888:3888;2181"
+      ZOO_SERVERS="server.1=$MY_POD_IP:2888:3888;2181"
     fi
 
     for server in $ZOO_SERVERS; do
