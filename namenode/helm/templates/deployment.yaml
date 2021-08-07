@@ -90,7 +90,7 @@ spec:
           tcpSocket:
             port: 9870
           initialDelaySeconds: 15
-        name: hadoop
+        name: namenode
         ports:
         - containerPort: 9779
           name: prometheus

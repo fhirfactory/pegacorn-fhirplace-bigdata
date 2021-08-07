@@ -10,7 +10,7 @@ metadata:
     # From https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/rfc2136.md
     external-dns.alpha.kubernetes.io/hostname: {{ .Values.dnsEntry }}
     {{- end }}    
-    prometheus.io/port: "9779"
+    prometheus.io/port: "9870"
     prometheus.io/scrape: "true"
   labels:
     app: {{ .Values.serviceName }}
@@ -18,16 +18,28 @@ metadata:
   name: {{ .Values.serviceName }}
 spec:
   ports:
-  - name: namenode
-    port: 8020
+  - name: clientport
+    port: {{ add 0 .Values.basePort }}
     protocol: TCP
-    targetPort: 8020
-  - name: hadoop-web
-    port: 9870
+    targetPort: 2181
+    nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 0 .Values.basePort }} {{ end }}
+  - name: peerport
+    port: {{ add 1 .Values.basePort }}
     protocol: TCP
-    targetPort: 9870
+    targetPort: 2888
+    nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 1 .Values.basePort }} {{ end }}
+  - name: leaderport
+    port: {{ add 2 .Values.basePort }}
+    protocol: TCP
+    targetPort: 3888
+    nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 2 .Values.basePort }} {{ end }}
+  - name: adminserver
+    port: {{ add 3 .Values.basePort }}
+    protocol: TCP
+    targetPort: 8080
+    nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 3 .Values.basePort }} {{ end }}
   selector:
-    app: pegacorn-fhirplace-hadoop
+    app: pegacorn-fhirplace-hbase
   type: {{ .Values.serviceType | default "LoadBalancer" }}
   {{- if (.Values.loadBalancerIP) }} 
   loadBalancerIP: {{ .Values.loadBalancerIP }}

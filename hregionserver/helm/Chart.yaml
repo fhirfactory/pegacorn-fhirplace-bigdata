@@ -1,0 +1,5 @@
+---
+name: pegacorn-hadoop-hbase-regionserver
+version: 1.0.0-SNAPSHOT
+description: Pegacorn Hadoop HBase regionserver
+icon: img/icons/camel.svg

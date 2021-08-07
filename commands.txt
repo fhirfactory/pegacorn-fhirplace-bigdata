@@ -1,7 +1,8 @@
 (Run in cmd [Administrator mode] except where noted)
 
-# Build base image -- This was built and pushed to fhirfactory docker hub
-docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile .
+# Build base images -- This was built and pushed to fhirfactory docker hub
+docker build --rm -t pegacorn-base-hadoop:1.0.0 --file Dockerfile .
+docker build --rm -t pegacorn-base-hbase:1.0.0 --file Dockerfile .
 
 # Deploy Master Node (NameNode)
 cd to namenode folder:
@@ -23,7 +24,7 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
 
-RUN THIS IS A SEPARATE COMMANDLINE!!!
+RUN THIS AS A SEPARATE COMMANDLINE!!!
 Run the Alpine command to mount your volumes:
 docker container run --rm -it -v /:/host alpine
 chroot /host
@@ -32,4 +33,15 @@ chroot /host
 
 helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDatanode=/data/hadoop-datanode-alpha,clusterIP=[Put CLUSTER-IP here],imageTag=1.0.0-snapshot,numOfPods=1 helm
 
-helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,basePort=32510,basePortInsidePod=8443,clusterIP=[Put CLUSTER-IP here],imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,clusterIP=[Put CLUSTER-IP here],imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
+127.0.0.1 pegacorn-fhirplace-datanode-alpha.site-a
+127.0.0.1 pegacorn-fhirplace-datanode-beta.site-a
+
+================================================================================================================================================
+# Hadoop Database setup
+
+# Deploy HBase Master Server
+cd to hmaster folder:
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .

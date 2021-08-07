@@ -1,0 +1,5 @@
+---
+name: pegacorn-hadoop-zookeeper
+version: 1.0.0-SNAPSHOT
+description: Pegacorn Hadoop Zookeeper
+icon: img/icons/camel.svg
