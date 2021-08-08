@@ -56,6 +56,9 @@ cd to hmaster folder:
 docker pull fhirfactory/pegacorn-base-hbase:1.0.0
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .
 
+Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
+127.0.0.1 pegacorn-fhirplace-hbase-master.site-a
+
 # Retrieve CLUSTER-IP-NAMENODE of NameNode service -- provide the value in nameNodeIP for HBase servers (run in BASH)
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 # Retrieve CLUSTER-IP-ZOOKEEPER of Zookeeper service -- provide the value in zooKeeperIP for HBase servers (run in BASH)
