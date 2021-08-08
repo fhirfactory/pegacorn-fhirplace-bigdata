@@ -1,6 +1,5 @@
 FROM fhirfactory/pegacorn-base-zookeeper:1.0.0
 
-WORKDIR $DISTRO_NAME
 VOLUME ["$ZOO_DATA_DIR", "$ZOO_DATA_LOG_DIR", "$ZOO_LOG_DIR"]
 
 EXPOSE 2181 2888 3888 8080
@@ -14,4 +13,4 @@ RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
 COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["zkServer.sh", "start-foreground"]
+CMD ["/apache-zookeeper-3.6.3-bin/bin/zkServer.sh", "start-foreground"]
