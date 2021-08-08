@@ -19,12 +19,12 @@ metadata:
 spec:
   ports:
   - name: hbase-web
-    port: {{ add 0 .Values.basePort }}
+    port: 16010
     protocol: TCP
     targetPort: 16010
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 0 .Values.basePort }} {{ end }}
   - name: hbase
-    port: {{ add 1 .Values.basePort }}
+    port: 16000
     protocol: TCP
     targetPort: 16000
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 1 .Values.basePort }} {{ end }}

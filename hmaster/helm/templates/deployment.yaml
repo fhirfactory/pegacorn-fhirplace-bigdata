@@ -92,7 +92,7 @@ spec:
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
-            port: 16000
+            port: 16010
           initialDelaySeconds: 30
         name: hbase-master
         ports:
@@ -104,7 +104,7 @@ spec:
           protocol: TCP
         readinessProbe:
           tcpSocket:
-            port: 16000
+            port: 16010
           initialDelaySeconds: 30
         securityContext:
           privileged: false

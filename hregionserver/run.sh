@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 function addProperty() {
   local path=$1
   local name=$2
@@ -41,7 +43,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hbase/hbase-site.xml hbase.master.info.port 16010
     addProperty /etc/hbase/hbase-site.xml hbase.regionserver.port 16020
     addProperty /etc/hbase/hbase-site.xml hbase.regionserver.info.port 16030
-    addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.clientPort 32310
+    addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.clientPort 2181
     addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.dataDir /data
 fi
 
