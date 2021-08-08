@@ -51,10 +51,9 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 
 helm upgrade pegacorn-fhirplace-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKData=/data/zookeeper-data,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
-# Deploy HBase Master Server
+# Deploy HBase Master server (HBase master is the management server for Hbase Region clusters)
 cd to hmaster folder:
 docker pull fhirfactory/pegacorn-base-hbase:1.0.0
-# Deploy HBase Master server (HBase master is the management server for Hbase Region clusters)
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .
 
 # Retrieve CLUSTER-IP-NAMENODE of NameNode service -- provide the value in nameNodeIP for HBase servers (run in BASH)
@@ -65,7 +64,7 @@ kubectl get svc pegacorn-fhirplace-hbase-zookeeper -n site-a --no-headers | awk 
 helm upgrade pegacorn-fhirplace-hbase-master-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-master,imagePullPolicy=Never,basePort=32410,hostPathHbMaster=/data/hbase-master,nameNodeIP=[CLUSTER-IP-NAMENODE],zooKeeperIP=[CLUSTER-IP-ZOOKEEPER],imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deply Hbase Region servers - 2 pods
-cd to hmaster folder:
+cd to hregionserver folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-region:1.0.0-snapshot --file Dockerfile .
 
 helm upgrade pegacorn-fhirplace-hbase-region-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-region,imagePullPolicy=Never,basePort=32210,hostPathHbRegion=/data/hbase-region,nameNodeIP=[CLUSTER-IP-NAMENODE],zooKeeperIP=[CLUSTER-IP-ZOOKEEPER],imageTag=1.0.0-snapshot,numOfPods=2 helm
