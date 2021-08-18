@@ -19,29 +19,28 @@
 <configuration>
 
 <property>
-  <name>ssl.client.truststore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-bigdata-api.site-a-cert.jks</value>
-  <description>Truststore to be used by clients like distcp. Must be
-  specified.
+  <name>ssl.server.truststore.location</name>
+  <value>/etc/hadoop/ssl/pegacorn-fhirplace-datanode-beta.site-a-cert.jks</value>
+  <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
-  <name>ssl.client.truststore.password</name>
-  <value>Peg@cornTrustSt0reHD</value>
+  <name>ssl.server.truststore.password</name>
+  <value>Peg@cornTrustSt0reDSbE</value>
   <description>Optional. Default value is "".
   </description>
 </property>
 
 <property>
-  <name>ssl.client.truststore.type</name>
+  <name>ssl.server.truststore.type</name>
   <value>jks</value>
   <description>Optional. The keystore file format, default value is "jks".
   </description>
 </property>
 
 <property>
-  <name>ssl.client.truststore.reload.interval</name>
+  <name>ssl.server.truststore.reload.interval</name>
   <value>10000</value>
   <description>Truststore reload check interval, in milliseconds.
   Default value is 10000 (10 seconds).
@@ -49,31 +48,29 @@
 </property>
 
 <property>
-  <name>ssl.client.keystore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-bigdata-api.site-a.jks</value>
-  <description>Keystore to be used by clients like distcp. Must be
-  specified.
+  <name>ssl.server.keystore.location</name>
+  <value>/etc/hadoop/ssl/pegacorn-fhirplace-datanode-beta.site-a.jks</value>
+  <description>Keystore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
-  <name>ssl.client.keystore.password</name>
-  <value>Peg@cornK3yHD</value>
-  <description>Optional. Default value is "".
-  </description>
+  <name>ssl.server.keystore.password</name>
+  <value>Peg@cornK3yDSbE</value>
+  <description>Must be specified</description>
 </property>
 
 <property>
-  <name>ssl.client.keystore.keypassword</name>
-  <value>Peg@cornK3yHD</value>
-  <description>Optional. Default value is "".
-  </description>
-</property>
-
-<property>
-  <name>ssl.client.keystore.type</name>
+  <name>ssl.server.keystore.type</name>
   <value>jks</value>
   <description>Optional. The keystore file format, default value is "jks".
   </description>
 </property>
+
+<property>
+  <name>ssl.server.keystore.keypassword</name>
+  <value>Peg@cornK3yDSbE</value>
+  <description>Must be specified</description>
+</property>
+
 </configuration>

@@ -17,15 +17,19 @@ metadata:
     version: "{{ .Values.imageTag }}"
   name: {{ .Values.serviceName }}
 spec:
-  ports:
-  - name: namenode
-    port: 9820
+  ports:   
+  - name: datanode
+    port: 9865
     protocol: TCP
-    targetPort: 9820
-  - name: hadoop-web
-    port: 9871
+    targetPort: 9865
+  - name: data-transfer
+    port: 9866
     protocol: TCP
-    targetPort: 9871
+    targetPort: 9866
+  - name: ipc-metadata
+    port: 9867
+    protocol: TCP
+    targetPort: 9867
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}

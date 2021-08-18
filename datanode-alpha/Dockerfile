@@ -7,11 +7,18 @@ HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1
 ENV MULTIHOMED_NETWORK=1
 ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/datanode
 ENV KEYTAB_DIR=/etc/security/keytabs
+ENV CERTS=/etc/hadoop/ssl
 
 RUN mkdir -p /hadoop/dfs/datanode
+RUN mkdir -p /etc/hadoop/ssl
+COPY hadoop-env.sh /opt/hadoop-3.3.0/etc/hadoop/hadoop-env.sh
 
-COPY run.sh /run.sh
-RUN chmod a+x /run.sh
+# Add users to HDFS
+RUN addgroup pegacorn
+RUN adduser jboss --no-create-home --disabled-password --gecos ""
+RUN adduser fhirplace --no-create-home --disabled-password --gecos ""
+RUN usermod -aG pegacorn jboss
+RUN usermod -aG pegacorn fhirplace
 
 # Kerberos configuration
 COPY krb5.conf /etc/krb5.conf
@@ -27,9 +34,9 @@ ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
 # Hadoop ports
-EXPOSE 9865 9867 50075
+EXPOSE 9865 9866 9867
 
-# Kerberos ports
-EXPOSE 50010
+COPY run.sh /run.sh
+RUN chmod a+x /run.sh
 
 CMD ["/run.sh"]

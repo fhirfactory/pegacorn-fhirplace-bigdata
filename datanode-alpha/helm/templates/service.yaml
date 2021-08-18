@@ -22,6 +22,14 @@ spec:
     port: 9865
     protocol: TCP
     targetPort: 9865
+  - name: data-transfer
+    port: 9866
+    protocol: TCP
+    targetPort: 9866
+  - name: ipc-metadata
+    port: 9867
+    protocol: TCP
+    targetPort: 9867
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}

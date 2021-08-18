@@ -75,8 +75,8 @@ spec:
               fieldPath: spec.serviceAccountName
         - name: JVM_MAX_HEAP_SIZE
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
-        - name: CLUSTER_NAME
-          value: {{ .Values.clusterName }}
+        - name: CLUSTER_IP
+          value: {{ .Values.clusterIP }}
         - name: KDC_SERVER
           value: {{ .Values.kdcServer }}
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
@@ -86,13 +86,13 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-namenode:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode-beta:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
-            port: 9871
+            port: 9865
           initialDelaySeconds: 15
-        name: hadoop-namenode
+        name: hadoop-datanode
         ports:
         - containerPort: 9779
           name: prometheus
@@ -100,33 +100,33 @@ spec:
         - containerPort: 8778
           name: jolokia
           protocol: TCP
-        - containerPort: 9820
-          name: namenode
+        - containerPort: 9865
+          name: datanode
           protocol: TCP
-        - containerPort: 9000
-          name: master-port
+        - containerPort: 9866
+          name: data-transfer
           protocol: TCP
-        - containerPort: 9871
-          name: hadoop-web
+        - containerPort: 9867
+          name: ipc-metadata
           protocol: TCP
         readinessProbe:
           tcpSocket:
-            port: 9871
+            port: 9865
           initialDelaySeconds: 15
         securityContext:
           privileged: false
         volumeMounts:
-        - name: namenode-dir
-          mountPath: /hadoop/dfs/namenode
+        - name: datanode-dir
+          mountPath: /hadoop/dfs/datanode
         - name: keytabs
           mountPath: /etc/security/keytabs
         - name: config
           mountPath: /etc/hadoop/ssl
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
-      - name: namenode-dir
+      - name: datanode-dir
         hostPath:
-          path: {{ .Values.hostPathNamenode }}
+          path: {{ .Values.hostPathDatanode }}
       - name: keytabs
         hostPath:
           path: {{ .Values.hostPathKeytab }}

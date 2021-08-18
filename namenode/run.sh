@@ -1,48 +1,23 @@
 #!/bin/bash
 
-# Kerberos KDC server configuration
-# Ref: https://github.com/dosvath/kerberos-containers/blob/master/kdc-server/init-script.sh
+set -e
 
 # kerberos client
-sed -i "s/localhost/${MY_POD_NAME}/g" /etc/krb5.conf
+sed -i "s/kdcserver/${KDC_SERVER}:88/g" /etc/krb5.conf
+sed -i "s/kdcadmin/${KDC_SERVER}:749/g" /etc/krb5.conf
 
 # certificates
-cp /etc/hadoop/ssl/ca.crt /usr/local/share/ca-certificates
+cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
 update-ca-certificates --verbose
 
-echo "==== Creating realm ==============================================================="
-echo "==================================================================================="
-# TDL -- Use HELM env variables for passwords
-MASTER_PASSWORD=Peg@corn
-KADMIN_PRINCIPAL=root/admin
 REALM=PEGACORN-FHIRPLACE-NAMENODE.SITE-A
-KADMIN_PRINCIPAL_FULL=$KADMIN_PRINCIPAL@$REALM
-# This command also starts the krb5-kdc and krb5-admin-server services
-krb5_newrealm <<EOF
-$MASTER_PASSWORD
-$MASTER_PASSWORD
-EOF
-echo ""
 
+echo "==== Authenticating to realm ==============================================================="
 echo "==================================================================================="
-echo "==== Creating hdfs principal in the acl ======================================="
-echo "==================================================================================="
-echo "Adding $KADMIN_PRINCIPAL principal"
-# kadmin.local -q "delete_principal -force K/M@PEGACORN-FHIRPLACE-NAMENODE.SITE-A"
+kinit root/${MY_HOST_IP}@${REALM} -kt ${KEYTAB_DIR}/root.hdfs.keytab -V &
+wait -n
+echo "NameNode TGT completed."
 echo ""
-kadmin.local -q "addprinc -pw $MASTER_PASSWORD $KADMIN_PRINCIPAL_FULL"
-echo ""
-
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey jboss/admin@$REALM"
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k root.hdfs.keytab jboss/admin"
-# secure alpha datanode
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "addprinc -randkey alpha/admin@$REALM"
-kadmin -p root/admin -w ${MASTER_PASSWORD} -q "xst -k alpha.hdfs.keytab alpha/admin"
-
-mv root.hdfs.keytab ${KEYTAB_DIR}
-mv alpha.hdfs.keytab ${KEYTAB_DIR}
-chmod 400 ${KEYTAB_DIR}/root.hdfs.keytab
-chmod 400 ${KEYTAB_DIR}/alpha.hdfs.keytab
 
 ### Start entrypoint.sh
 ### https://github.com/big-data-europe/docker-hadoop/blob/master/base/entrypoint.sh
@@ -76,67 +51,48 @@ function configure() {
 
 configure /etc/hadoop/core-site.xml core CORE_CONF
 configure /etc/hadoop/hdfs-site.xml hdfs HDFS_CONF
-configure /etc/hadoop/yarn-site.xml yarn YARN_CONF
-configure /etc/hadoop/httpfs-site.xml httpfs HTTPFS_CONF
-configure /etc/hadoop/kms-site.xml kms KMS_CONF
-configure /etc/hadoop/mapred-site.xml mapred MAPRED_CONF
 
 if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # CORE
-    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_NAME}:8020
+    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_IP}:9820
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
-    addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
+    addProperty /etc/hadoop/core-site.xml hadoop.security.authorization false
     addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local DEFAULT
-    addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
-    addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.hostname.verifier ALLOW_ALL
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
-    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection authentication
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal root/${MY_HOST_IP}@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.internal.spnego.principal HTTP/${MY_HOST_IP}@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.keytab ${KEYTAB_DIR}/http.hdfs.keytab
+    addProperty /etc/hadoop/core-site.xml hadoop.http.filter.initializers org.apache.hadoop.security.AuthenticationFilterInitializer
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.signature.secret.file ${CERTS}/hadoop-http-auth-signature-secret
     
 
     # HDFS
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.lifeline.rpc-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.https.port 50470
-    addProperty /etc/hadoop/hdfs-site.xml dfs.https.address ${MY_POD_NAME}:50470
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_NAME}:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host ${MY_POD_IP}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host ${MY_POD_IP}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host ${MY_POD_IP}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host ${MY_POD_IP}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
-    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname false
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
+    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer false
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/alpha.hdfs.keytab
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal jboss/admin@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_IP}:9871
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
-    addProperty /etc/hadoop/hdfs-site.xml dfs.https.server.keystore.resource ssl-server.xml
-    addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.keystore.resource ssl-client.xml
-    addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
-
-    # YARN ---- Not required in current release <configured for future use>
-    addProperty /etc/hadoop/yarn-site.xml yarn.acl.enable 0
-    addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.hostname ${MY_POD_IP}
-    addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.aux-services mapreduce_shuffle
-    addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.resource.memory-mb 3072
-    addProperty /etc/hadoop/yarn-site.xml yarn.scheduler.maximum-allocation-mb 3072
-    addProperty /etc/hadoop/yarn-site.xml yarn.scheduler.minimum-allocation-mb 512
-    addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.bind-host 0.0.0.0
-    addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.bind-host 0.0.0.0
-    addProperty /etc/hadoop/yarn-site.xml yarn.timeline-service.bind-host 0.0.0.0
-
-    # MAPRED ---- Not required in current release <configured for future use>
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.framework.name yarn
-    addProperty /etc/hadoop/mapred-site.xml yarn.app.mapreduce.am.env HADOOP_MAPRED_HOME=$HADOOP_HOME
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.map.env HADOOP_MAPRED_HOME=$HADOOP_HOME
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.env HADOOP_MAPRED_HOME=$HADOOP_HOME
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.jobtracker.address 8021
+    addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.simple.anonymous.allowed true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection authentication
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.principal HTTP/${MY_HOST_IP}@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.keytab ${KEYTAB_DIR}/http.hdfs.keytab
 fi
 
 function wait_for_it()
@@ -187,8 +143,8 @@ if [ -z "$CLUSTER_NAME" ]; then
   exit 2
 fi
 
-echo "remove lost+found from $namedir"
-rm -r $namedir/lost+found
+# echo "remove lost+found from $namedir"
+# rm -r $namedir/lost+found
 
 if [ "`ls -A $namedir`" == "" ]; then
   echo "Formatting namenode name directory: $namedir"
@@ -196,5 +152,3 @@ if [ "`ls -A $namedir`" == "" ]; then
 fi
 
 $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR namenode
-
-exec $@

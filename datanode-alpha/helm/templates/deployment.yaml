@@ -77,8 +77,8 @@ spec:
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
         - name: CLUSTER_IP
           value: {{ .Values.clusterIP }}
-        - name: NAMENODE_IP
-          value: {{ .Values.masterPodIP }}
+        - name: KDC_SERVER
+          value: {{ .Values.kdcServer }}
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits
@@ -86,13 +86,13 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode-alpha:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
             port: 9865
           initialDelaySeconds: 15
-        name: hadoop
+        name: hadoop-datanode
         ports:
         - containerPort: 9779
           name: prometheus
@@ -102,6 +102,12 @@ spec:
           protocol: TCP
         - containerPort: 9865
           name: datanode
+          protocol: TCP
+        - containerPort: 9866
+          name: data-transfer
+          protocol: TCP
+        - containerPort: 9867
+          name: ipc-metadata
           protocol: TCP
         readinessProbe:
           tcpSocket:

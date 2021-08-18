@@ -4,4 +4,4 @@
 # ending in /admin  is given full administrative rights.
 # To enable this, uncomment the following line:
 #*/admin *
-*/admin@PEGACORN-FHIRPLACE-NAMENODE.SITE-A *
+*/admin *

@@ -37,6 +37,7 @@ spec:
 #                operator: In
 #                values:
 #                - High
+      hostNetwork: true
       containers:
       - env:
         - name: KUBERNETES_SERVICE_NAME
@@ -77,8 +78,6 @@ spec:
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
         - name: CLUSTER_NAME
           value: {{ .Values.clusterName }}
-        - name: KDC_SERVER
-          value: {{ .Values.kdcServer }}
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits
@@ -86,50 +85,37 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-namenode:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-kdcserver:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
-            port: 9871
+            port: 88
           initialDelaySeconds: 15
-        name: hadoop-namenode
+        name: kdc-server
         ports:
         - containerPort: 9779
           name: prometheus
           protocol: TCP
-        - containerPort: 8778
-          name: jolokia
+        - containerPort: 88
+          name: kdc
           protocol: TCP
-        - containerPort: 9820
-          name: namenode
+        - containerPort: 750
+          name: kdc-admin
           protocol: TCP
-        - containerPort: 9000
-          name: master-port
-          protocol: TCP
-        - containerPort: 9871
-          name: hadoop-web
+        - containerPort: 749
+          name: kdc-backup
           protocol: TCP
         readinessProbe:
           tcpSocket:
-            port: 9871
+            port: 88
           initialDelaySeconds: 15
         securityContext:
           privileged: false
         volumeMounts:
-        - name: namenode-dir
-          mountPath: /hadoop/dfs/namenode
         - name: keytabs
           mountPath: /etc/security/keytabs
-        - name: config
-          mountPath: /etc/hadoop/ssl
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
-      - name: namenode-dir
-        hostPath:
-          path: {{ .Values.hostPathNamenode }}
       - name: keytabs
         hostPath:
           path: {{ .Values.hostPathKeytab }}
-      - name: config
-        hostPath:
-          path: {{ .Values.hostPathConfig }}
