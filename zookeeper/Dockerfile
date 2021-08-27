@@ -12,5 +12,7 @@ ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
 COPY docker-entrypoint.sh /
+RUN chmod a+x /docker-entrypoint.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/apache-zookeeper-3.6.3-bin/bin/zkServer.sh", "start-foreground"]

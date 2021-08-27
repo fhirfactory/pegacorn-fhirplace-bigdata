@@ -22,7 +22,7 @@ helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --s
 Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-namenode.site-a
 
-To view HDFS Web - go to
+To view HDFS Web:
 http://pegacorn-fhirplace-namenode.site-a:9870
 
 # Deploy Worker Nodes (DataNodes)
@@ -58,6 +58,9 @@ docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-
 
 Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-hbase-master.site-a
+
+To view Hbase Web:
+http://pegacorn-fhirplace-hbase-master.site-a:16010
 
 # Retrieve CLUSTER-IP-NAMENODE of NameNode service -- provide the value in nameNodeIP for HBase servers (run in BASH)
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
