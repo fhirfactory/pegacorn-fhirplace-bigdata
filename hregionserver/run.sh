@@ -85,4 +85,4 @@ done
 
 /opt/hbase-$HBASE_VERSION/bin/hbase regionserver start
 
-exec $@
+exec jboss $@

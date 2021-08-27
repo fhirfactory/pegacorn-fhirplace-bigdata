@@ -86,4 +86,4 @@ done
 
 /opt/hbase-$HBASE_VERSION/bin/hbase master start
 
-exec $@
+exec jboss $@

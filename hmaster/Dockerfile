@@ -6,8 +6,10 @@ HEALTHCHECK CMD curl -f http://localhost:16010/ || exit 1
 
 ENV MULTIHOMED_NETWORK=1
 
-# Add jboss user to Sudo
+# Add jboss user to HDFS
+RUN addgroup pegacorn
 RUN adduser jboss --no-create-home --disabled-password --gecos ""
+RUN usermod -aG pegacorn jboss
 RUN usermod -aG sudo jboss
 
 COPY hbase-site.xml /etc/hbase/hbase-site.xml
@@ -19,5 +21,10 @@ ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
 EXPOSE 16000 16010
+
+RUN chmod -R 777 /etc/hbase
+RUN chown -R jboss:0 /etc/hbase
+
+USER jboss
 
 CMD ["/run.sh"]
