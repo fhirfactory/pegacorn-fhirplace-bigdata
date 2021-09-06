@@ -78,9 +78,9 @@ spec:
         - name: JVM_MAX_HEAP_SIZE
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
         - name: NAMENODE_CLUSTER_IP
-          value: {{ .Values.nameNodeIP }}
+          value: 10.107.0.183
         - name: ZOOKEEPER_CLUSTER_IP
-          value: {{ .Values.zooKeeperIP }}
+          value: 10.111.121.136
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits
