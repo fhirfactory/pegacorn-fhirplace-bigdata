@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -e
+
+if [ -f "/hadoop/dfs/datanode/in_use.lock" ]; then
+echo "removing existing filelock : /hadoop/dfs/datanode/in_use.lock"
+rm -f /hadoop/dfs/datanode/in_use.lock
+fi
+
 function addProperty() {
   local path=$1
   local name=$2

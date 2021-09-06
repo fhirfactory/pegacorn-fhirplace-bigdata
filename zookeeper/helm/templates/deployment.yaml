@@ -115,8 +115,18 @@ spec:
         volumeMounts:
         - name: zookeeper-data
           mountPath: /data
+        - name: zookeeper-datalog
+          mountPath: /datalog
+        - name: zookeeper-logs
+          mountPath: /logs
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
       - name: zookeeper-data
+        hostPath:
+          path: {{ .Values.hostPathZKData }}
+      - name: zookeeper-datalog
+        hostPath:
+          path: {{ .Values.hostPathZKData }}
+      - name: zookeeper-logs
         hostPath:
           path: {{ .Values.hostPathZKData }}

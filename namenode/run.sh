@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -e
+
+if [ -f "/hadoop/dfs/namenode/in_use.lock" ]; then
+echo "removing existing filelock : /hadoop/dfs/namenode/in_use.lock"
+rm -f /hadoop/dfs/namenode/in_use.lock
+fi
+
 ### Start entrypoint.sh
 ### https://github.com/big-data-europe/docker-hadoop/blob/master/base/entrypoint.sh
 function addProperty() {
@@ -120,9 +127,6 @@ if [ -z "$CLUSTER_NAME" ]; then
   echo "Cluster name not specified"
   exit 2
 fi
-
-echo "remove lost+found from $namedir"
-rm -r $namedir/lost+found
 
 if [ "`ls -A $namedir`" == "" ]; then
   echo "Formatting namenode name directory: $namedir"
