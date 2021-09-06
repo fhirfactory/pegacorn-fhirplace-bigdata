@@ -64,4 +64,4 @@ http://pegacorn-fhirplace-hbase-master.site-a:16010
 cd to hregionserver folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-region:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-hbase-region-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-region,imagePullPolicy=Never,basePort=32210,hostPathHbRegion=/data/hbase-region,imageTag=1.0.0-snapshot,numOfPods=4 helm
+helm upgrade pegacorn-fhirplace-hbase-region-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-region,imagePullPolicy=Never,basePort=32210,hostPathHbRegion=/data/hbase-region,imageTag=1.0.0-snapshot,numOfPods=2 helm
