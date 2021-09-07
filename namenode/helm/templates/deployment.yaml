@@ -27,16 +27,6 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.acrSecretName }}
       {{- end }}
-#      affinity:
-#        nodeAffinity:
-#          preferredDuringSchedulingIgnoredDuringExecution:
-#          - weight: 1
-#            preference:
-#              matchExpressions:
-#              - key: computeResources
-#                operator: In
-#                values:
-#                - High
       containers:
       - env:
         - name: KUBERNETES_SERVICE_NAME
@@ -78,7 +68,9 @@ spec:
         - name: CLUSTER_NAME
           value: {{ .Values.clusterName }}
         - name: KDC_SERVER
-          value: {{ .Values.kdcServer }}
+          value: 192.168.2.25
+        - name: REALM
+          value: PEGACORN-FHIRPLACE-HESTIA
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits

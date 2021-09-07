@@ -1,23 +1,27 @@
+kubectl create secret generic pegacorn-fhirplace-kdcserver-secrets --from-literal=kdcPassword="Peg@c0rnKdC" --namespace=site-a
+
 # Build base image
-docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile .
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
 
 # Deploy Kerberos KDC server -- <as Host Network>
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-kdcserver:1.0.0-snapshot --file Dockerfile .
+
 helm upgrade pegacorn-fhirplace-kdcserver-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-kdcserver,imagePullPolicy=Never,hostPathKeytab=/data/kdc-keytab,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deploy Master Node (NameNode)
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
-helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,imagePullPolicy=Never,hostPathNamenode=/data/hadoop-namenode,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,clusterName=Pegacorn,kdcServer=[ip-address-of-kdc],imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,imagePullPolicy=Never,hostPathNamenode=/data/hadoop-namenode,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Retrieve CLUSTER-IP of NameNode service
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
 # Deploy Worker Nodes (DataNodes)
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-alpha:1.0.0-snapshot --file Dockerfile .
-helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,clusterIP=[ip-of-namenode],kdcServer=[ip-address-of-kdc],imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-beta:1.0.0-snapshot --file Dockerfile .
-helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-beta,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,clusterIP=[ip-of-namenode],kdcServer=[ip-address-of-kdc],imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-beta,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 https://pegacorn-fhirplace-namenode.site-a:9871
 

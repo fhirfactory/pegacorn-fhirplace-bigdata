@@ -1,14 +1,20 @@
 #!/bin/bash
 
-REALM=PEGACORN-FHIRPLACE-NAMENODE.SITE-A
+set -e
+
+if [ -f "/hadoop/dfs/datanode/in_use.lock" ]; then
+echo "removing existing filelock : /hadoop/dfs/datanode/in_use.lock"
+rm -f /hadoop/dfs/datanode/in_use.lock
+fi
 
 # kerberos client
+sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
 sed -i "s/kdcserver/${KDC_SERVER}:88/g" /etc/krb5.conf
 sed -i "s/kdcadmin/${KDC_SERVER}:749/g" /etc/krb5.conf
 
-kinit root/${MY_HOST_IP}@$REALM -kt ${KEYTAB_DIR}/root.hdfs.keytab -V &
+kinit datanodebeta/${MY_HOST_IP}@$REALM -kt ${KEYTAB_DIR}/beta.hdfs.keytab -V &
 wait -n
-echo "DataNode TGT completed."
+echo "DataNode beta TGT completed."
 
 # certificates
 cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
@@ -49,7 +55,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # CORE
-    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:9820
+    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${NAMENODE_IP}:9820
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization true
     addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local DEFAULT
@@ -62,10 +68,10 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.signature.secret.file ${CERTS}/hadoop-http-auth-signature-secret
 
     # HDFS
-    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 1
+    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal root/${MY_HOST_IP}@$REALM
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/root.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal datanodebeta/${MY_HOST_IP}@$REALM
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/beta.hdfs.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.address ${MY_POD_IP}:9866
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.https.address ${MY_POD_IP}:9865
@@ -74,7 +80,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
     addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer false
     addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection authentication
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${CLUSTER_IP}:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${NAMENODE_IP}:9871
 fi
 
 

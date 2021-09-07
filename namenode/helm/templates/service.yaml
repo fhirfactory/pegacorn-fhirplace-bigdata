@@ -29,6 +29,7 @@ spec:
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}
+  clusterIP: 10.152.183.187
   {{- if (.Values.loadBalancerIP) }} 
   loadBalancerIP: {{ .Values.loadBalancerIP }}
   {{- end }}

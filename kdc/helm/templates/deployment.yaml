@@ -27,19 +27,14 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.acrSecretName }}
       {{- end }}
-#      affinity:
-#        nodeAffinity:
-#          preferredDuringSchedulingIgnoredDuringExecution:
-#          - weight: 1
-#            preference:
-#              matchExpressions:
-#              - key: computeResources
-#                operator: In
-#                values:
-#                - High
       hostNetwork: true
       containers:
       - env:
+        - name: KDC_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: {{ .Values.serviceName }}-secrets
+            key: kdcPassword
         - name: KUBERNETES_SERVICE_NAME
           value: {{ .Values.serviceName }}
         - name: {{ upper .Values.serviceName | replace "-" "_" }}_{{ upper .Release.Namespace | replace "-" "_" }}_KUBERNETES_SERVICE_NAME
@@ -74,17 +69,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.serviceAccountName
-        - name: JVM_MAX_HEAP_SIZE
-          value: "{{ .Values.jvmMaxHeapSizeMB }}m"
-        - name: CLUSTER_NAME
-          value: {{ .Values.clusterName }}
-        # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
-        # for the native heap and operation system processes associated with running Java
-        # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits
-        # and https://www.alibabacloud.com/blog/kubernetes-demystified-restrictions-on-java-application-resources_594108
-        resources:
-          requests:
-            memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
+        - name: REALM
+          value: PEGACORN-FHIRPLACE-HESTIA
         image: {{ .Values.dockerRepo }}pegacorn-fhirplace-kdcserver:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
@@ -99,11 +85,8 @@ spec:
         - containerPort: 88
           name: kdc
           protocol: TCP
-        - containerPort: 750
-          name: kdc-admin
-          protocol: TCP
         - containerPort: 749
-          name: kdc-backup
+          name: kdc-admin
           protocol: TCP
         readinessProbe:
           tcpSocket:

@@ -23,10 +23,6 @@ spec:
     protocol: TCP
     targetPort: 88
   - name: kdc-admin
-    port: 750
-    protocol: TCP
-    targetPort: 750
-  - name: kdc-backup
     port: 749
     protocol: TCP
     targetPort: 749

@@ -16,10 +16,7 @@ RUN mkdir -p /etc/hadoop/ssl
 # Add users to HDFS
 RUN addgroup pegacorn
 RUN adduser jboss --no-create-home --disabled-password --gecos ""
-RUN adduser fhirplace --no-create-home --disabled-password --gecos ""
 RUN usermod -aG pegacorn jboss
-RUN usermod -aG pegacorn fhirplace
-RUN usermod -aG pegacorn root
 
 # Kerberos configuration
 COPY krb5.conf /etc/krb5.conf
