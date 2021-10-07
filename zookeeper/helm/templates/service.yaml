@@ -41,7 +41,6 @@ spec:
   selector:
     app: {{ .Values.serviceName }}
   type: {{ .Values.serviceType | default "LoadBalancer" }}
-  clusterIP: 10.111.121.136
   {{- if (.Values.loadBalancerIP) }} 
   loadBalancerIP: {{ .Values.loadBalancerIP }}
   {{- end }}

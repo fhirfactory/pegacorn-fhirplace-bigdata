@@ -29,9 +29,12 @@ http://pegacorn-fhirplace-namenode.site-a:9870
 cd to datanode folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,hostPathDatanode=/data/hadoop-datanode-alpha,imageTag=1.0.0-snapshot,numOfPods=1 helm
+# Retrieve CLUSTER-IP of NameNode service
+kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
-helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,hostPathDatanode=/data/hadoop-datanode-beta,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,nameNodeIP=[$CLUSTER-IP],hostPathDatanode=/data/hadoop-datanode-alpha,imageTag=1.0.0-snapshot,numOfPods=1 helm
+
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,nameNodeIP=[$CLUSTER-IP],hostPathDatanode=/data/hadoop-datanode-beta,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-datanode-alpha.site-a
@@ -45,14 +48,20 @@ cd to zookeeper folder:
 docker pull fhirfactory/pegacorn-base-zookeeper:1.0.0
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-zookeeper:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKData=/data/zookeeper-data,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-hbase-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKData=/data/zookeeper-data,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deploy HBase Master server (HBase master is the management server for Hbase Region clusters)
 cd to hmaster folder:
 docker pull fhirfactory/pegacorn-base-hbase:1.0.0
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-master:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-hbase-master-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-master,imagePullPolicy=Never,basePort=32410,hostPathHbMaster=/data/hbase-master,imageTag=1.0.0-snapshot,numOfPods=1 helm
+# Retrieve CLUSTER-IP of NameNode service
+kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
+
+# Retrieve CLUSTER-IP of Zookeeper service
+kubectl get svc pegacorn-fhirplace-hbase-zookeeper -n site-a --no-headers | awk {'print $3'}
+
+helm upgrade pegacorn-fhirplace-hbase-master-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-master,nameNodeIP=[$NAMENODE_CLUSTER_IP],zooKeeperIP=[$ZOOKEEPER_CLUSTER_IP],imagePullPolicy=Never,basePort=32410,hostPathHbMaster=/data/hbase-master,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Windows\System32\drivers\etc
 127.0.0.1 pegacorn-fhirplace-hbase-master.site-a
@@ -64,4 +73,4 @@ http://pegacorn-fhirplace-hbase-master.site-a:16010
 cd to hregionserver folder:
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-hbase-region:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-hbase-region-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-region,imagePullPolicy=Never,basePort=32210,hostPathHbRegion=/data/hbase-region,imageTag=1.0.0-snapshot,numOfPods=2 helm
+helm upgrade pegacorn-fhirplace-hbase-region-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-region,nameNodeIP=[$NAMENODE_CLUSTER_IP],zooKeeperIP=[$ZOOKEEPER_CLUSTER_IP],imagePullPolicy=Never,basePort=32210,hostPathHbRegion=/data/hbase-region,imageTag=1.0.0-snapshot,numOfPods=2 helm
