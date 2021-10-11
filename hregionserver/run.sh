@@ -38,12 +38,12 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     # HBASE
     addProperty /etc/hbase/hbase-site.xml hbase.cluster.distributed true
     addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.quorum ${ZOOKEEPER_CLUSTER_IP}
-    addProperty /etc/hbase/hbase-site.xml hbase.rootdir hdfs://${NAMENODE_CLUSTER_IP}:8020/hbase
+    addProperty /etc/hbase/hbase-site.xml hbase.rootdir hdfs://${NAMENODE_CLUSTER_IP}:17300/hbase
     addProperty /etc/hbase/hbase-site.xml hbase.master.port 16000
     addProperty /etc/hbase/hbase-site.xml hbase.master.info.port 16010
     addProperty /etc/hbase/hbase-site.xml hbase.regionserver.port 16020
     addProperty /etc/hbase/hbase-site.xml hbase.regionserver.info.port 16030
-    addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.clientPort 2181
+    addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.clientPort 17306
     addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.dataDir /data
 fi
 

@@ -23,7 +23,7 @@ Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Win
 127.0.0.1 pegacorn-fhirplace-namenode.site-a
 
 To view HDFS Web:
-http://pegacorn-fhirplace-namenode.site-a:9870
+http://pegacorn-fhirplace-namenode.site-a:17302
 
 # Deploy Worker Nodes (DataNodes)
 cd to datanode folder:
@@ -67,7 +67,7 @@ Add the following to your hosts file (with Notepad [Adminstrator mode]) - C:\Win
 127.0.0.1 pegacorn-fhirplace-hbase-master.site-a
 
 To view Hbase Web:
-http://pegacorn-fhirplace-hbase-master.site-a:16010
+http://pegacorn-fhirplace-hbase-master.site-a:17312
 
 # Deply Hbase Region servers - 2 pods
 cd to hregionserver folder:

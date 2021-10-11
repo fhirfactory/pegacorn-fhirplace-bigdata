@@ -42,7 +42,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # CORE
-    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:8020
+    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${CLUSTER_IP}:17300
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2

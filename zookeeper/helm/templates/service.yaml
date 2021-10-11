@@ -19,22 +19,22 @@ metadata:
 spec:
   ports:
   - name: clientport
-    port: 2181
+    port: 17306
     protocol: TCP
     targetPort: 2181
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 0 .Values.basePort }} {{ end }}
   - name: peerport
-    port: 2888
+    port: 17308
     protocol: TCP
     targetPort: 2888
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 1 .Values.basePort }} {{ end }}
   - name: leaderport
-    port: 3888
+    port: 17309
     protocol: TCP
     targetPort: 3888
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 2 .Values.basePort }} {{ end }}
   - name: adminserver
-    port: 8080
+    port: 17310
     protocol: TCP
     targetPort: 8080
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 3 .Values.basePort }} {{ end }}

@@ -19,12 +19,12 @@ metadata:
 spec:
   ports:
   - name: regionserver
-    port: 16020
+    port: 17316
     protocol: TCP
     targetPort: 16020
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 0 .Values.basePort }} {{ end }}
   - name: region-info
-    port: 16030
+    port: 17318
     protocol: TCP
     targetPort: 16030
     nodePort: {{ if (.Values.serviceType) and (eq .Values.serviceType "NodePort")}} {{ add 1 .Values.basePort }} {{ end }}

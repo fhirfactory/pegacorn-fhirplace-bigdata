@@ -77,7 +77,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/mapred-site.xml yarn.app.mapreduce.am.env HADOOP_MAPRED_HOME=$HADOOP_HOME
     addProperty /etc/hadoop/mapred-site.xml mapreduce.map.env HADOOP_MAPRED_HOME=$HADOOP_HOME
     addProperty /etc/hadoop/mapred-site.xml mapreduce.reduce.env HADOOP_MAPRED_HOME=$HADOOP_HOME
-    addProperty /etc/hadoop/mapred-site.xml mapreduce.jobtracker.address 8021
+    addProperty /etc/hadoop/mapred-site.xml mapreduce.jobtracker.address 17300
 fi
 
 function wait_for_it()
