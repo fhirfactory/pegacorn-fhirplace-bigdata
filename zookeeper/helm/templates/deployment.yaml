@@ -29,16 +29,6 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.acrSecretName }}
       {{- end }}
-#      affinity:
-#        nodeAffinity:
-#          preferredDuringSchedulingIgnoredDuringExecution:
-#          - weight: 1
-#            preference:
-#              matchExpressions:
-#              - key: computeResources
-#                operator: In
-#                values:
-#                - High
       containers:
       - env:
         - name: KUBERNETES_SERVICE_NAME
@@ -111,20 +101,10 @@ spec:
         securityContext:
           privileged: false
         volumeMounts:
-        - name: zookeeper-data
-          mountPath: /data
-        - name: zookeeper-datalog
-          mountPath: /datalog
-        - name: zookeeper-logs
+        - name: zookeeper-auditlogs
           mountPath: /logs
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
       volumes:
-      - name: zookeeper-data
+      - name: zookeeper-auditlogs
         hostPath:
-          path: {{ .Values.hostPathZKData }}
-      - name: zookeeper-datalog
-        hostPath:
-          path: {{ .Values.hostPathZKData }}
-      - name: zookeeper-logs
-        hostPath:
-          path: {{ .Values.hostPathZKData }}
+          path: {{ .Values.hostPathZKAudit }}

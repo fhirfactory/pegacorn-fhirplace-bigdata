@@ -48,7 +48,7 @@ cd to zookeeper folder:
 docker pull fhirfactory/pegacorn-base-zookeeper:1.0.0
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-zookeeper:1.0.0-snapshot --file Dockerfile .
 
-helm upgrade pegacorn-fhirplace-hbase-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKData=/data/zookeeper-data,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-hbase-zookeeper-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-hbase-zookeeper,imagePullPolicy=Never,basePort=32310,hostPathZKAudit=/data/zookeeper-audit,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deploy HBase Master server (HBase master is the management server for Hbase Region clusters)
 cd to hmaster folder:
