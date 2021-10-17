@@ -13,6 +13,7 @@ RUN usermod -aG pegacorn jboss
 RUN usermod -aG sudo jboss
 
 COPY hbase-site.xml /etc/hbase/hbase-site.xml
+COPY log4j.properties /opt/hbase-2.3.6/conf/log4j.properties
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 
@@ -24,6 +25,8 @@ EXPOSE 16020 16030
 
 RUN chmod -R 777 /etc/hbase
 RUN chown -R jboss:0 /etc/hbase
+RUN chmod -R 777 /opt/hbase-2.3.6/logs
+RUN chown -R jboss:0 /opt/hbase-2.3.6/logs
 
 USER jboss
 

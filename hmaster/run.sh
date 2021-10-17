@@ -46,6 +46,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hbase/hbase-site.xml hbase.regionserver.info.port 16030
     addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.clientPort 17306
     addProperty /etc/hbase/hbase-site.xml hbase.zookeeper.property.dataDir /data
+    addProperty /etc/hbase/hbase-site.xml hbase.security.authorization true
+	  addProperty /etc/hbase/hbase-site.xml hbase.coprocessor.master.classes org.apache.hadoop.hbase.security.access.AccessController
+	  addProperty /etc/hbase/hbase-site.xml hbase.coprocessor.region.classes org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController
 fi
 
 
