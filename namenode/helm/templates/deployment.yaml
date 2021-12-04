@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1 
-kind: Deployment
+kind: StatefulSet
 metadata:
   annotations:
     fabric8.io/metrics-path: dashboard/file/camel-routes.json/?var-project={{ .Values.serviceName }}&var-version={{ .Values.imageTag }}
@@ -9,6 +9,7 @@ metadata:
     version: "{{ .Values.imageTag }}"
   name: {{ .Values.serviceName }}
 spec:
+  serviceName: {{ .Values.serviceName }}
   replicas: {{ .Values.numOfPods | default 2 }}
   revisionHistoryLimit: 2
   selector:
@@ -70,7 +71,7 @@ spec:
         - name: KDC_SERVER
           value: 192.168.2.25
         - name: REALM
-          value: PEGACORN-FHIRPLACE-HESTIA
+          value: PEGACORN-FHIRPLACE-AUDIT.LOCAL
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 
         # for the native heap and operation system processes associated with running Java
         # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/#motivation-for-memory-requests-and-limits

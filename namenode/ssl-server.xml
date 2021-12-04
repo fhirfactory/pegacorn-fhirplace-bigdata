@@ -20,14 +20,14 @@
 
 <property>
   <name>ssl.server.truststore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-namenode.site-a-cert.jks</value>
+  <value>/etc/hadoop/ssl/truststore.jks</value>
   <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
   <name>ssl.server.truststore.password</name>
-  <value>Peg@cornTrustSt0reNM</value>
+  <value>Peg@cornTrustSt0re</value>
   <description>Optional. Default value is "".
   </description>
 </property>
@@ -65,12 +65,6 @@
   <value>jks</value>
   <description>Optional. The keystore file format, default value is "jks".
   </description>
-</property>
-
-<property>
-  <name>ssl.server.keystore.keypassword</name>
-  <value>Peg@cornK3yNM</value>
-  <description>Must be specified</description>
 </property>
 
 </configuration>

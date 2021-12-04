@@ -8,9 +8,11 @@ rm -f /hadoop/dfs/namenode/in_use.lock
 fi
 
 # kerberos client
+echo ${MY_HOST_IP} ${MY_NODE_NAME} >> /etc/hosts
+echo ${MY_POD_IP} ${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE} >> /etc/hosts
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
-sed -i "s/kdcserver/${KDC_SERVER}:88/g" /etc/krb5.conf
-sed -i "s/kdcadmin/${KDC_SERVER}:749/g" /etc/krb5.conf
+sed -i "s/kdcserver/${MY_NODE_NAME}:88/g" /etc/krb5.conf
+sed -i "s/kdcadmin/${MY_NODE_NAME}:749/g" /etc/krb5.conf
 
 # certificates
 cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
@@ -18,7 +20,7 @@ update-ca-certificates --verbose
 
 echo "==== Authenticating to realm ==============================================================="
 echo "==================================================================================="
-kinit namenode/${MY_HOST_IP}@${REALM} -kt ${KEYTAB_DIR}/namenode.hdfs.keytab -V &
+kinit nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM} -kt ${KEYTAB_DIR}/merged-krb5.keytab -V &
 wait -n
 echo "NameNode TGT completed."
 echo ""
@@ -60,39 +62,50 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # CORE
-    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_NAME}:9820
+    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${MY_POD_IP}:9820
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization false
-    addProperty /etc/hadoop/core-site.xml hadoop.security.auth_to_local DEFAULT
+    addProperty /etc/hadoop/core-site.xml hadoop.user.group.static.mapping.overrides HTTP/_HOST@${REALM}=;
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.hostname.verifier ALLOW_ALL
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
-    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection authentication
-    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.type simple
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.type kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.http.filter.initializers org.apache.hadoop.security.AuthenticationFilterInitializer,org.apache.hadoop.security.HttpCrossOriginFilterInitializer
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.token.max-inactive-interval -1
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.cookie.domain ${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE}
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.cookie.persistent true
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.signature.secret.file ${CERTS}/hadoop-http-auth-signature-secret
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.kerberos.principal HTTP/_HOST@${REALM}
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.kerberos.keytab ${KEYTAB_DIR}/merged-krb5.keytab
+    addProperty /etc/hadoop/core-site.xml hadoop.http.cross-origin.enabled true
+    addProperty /etc/hadoop/core-site.xml hadoop.http.cross-origin.allowed-origins *
+    addProperty /etc/hadoop/core-site.xml hadoop.http.cross-origin.allowed-methods GET,POST,HEAD,PUT
+    addProperty /etc/hadoop/core-site.xml hadoop.http.cross-origin.allowed-headers X-Requested-With,Content-Type,Accept,Origin
+    addProperty /etc/hadoop/core-site.xml hadoop.http.staticuser.user jboss
+    addProperty /etc/hadoop/core-site.xml hadoop.http.staticuser.user HTTP/_HOST@${REALM}
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host ${MY_POD_IP}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host ${MY_POD_IP}
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host ${MY_POD_NAME}
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host ${MY_POD_NAME}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host ${MY_POD_IP}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname false
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
-    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer false
+    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer true
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
-    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 2
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_NAME}:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.replication 1
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_IP}:9871
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
     addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal namenode/${MY_HOST_IP}@${REALM}
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/namenode.hdfs.keytab
-    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.principal HTTP/${MY_HOST_IP}@${REALM}
-    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.keytab ${KEYTAB_DIR}/http.hdfs.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/merged-krb5.keytab
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.internal.spnego.principal HTTP/_HOST@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.principal HTTP/_HOST@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.web.authentication.kerberos.keytab ${KEYTAB_DIR}/merged-krb5.keytab
 fi
 
 function wait_for_it()
