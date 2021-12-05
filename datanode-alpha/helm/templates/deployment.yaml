@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1 
-kind: Deployment
+kind: StatefulSet
 metadata:
   annotations:
     fabric8.io/metrics-path: dashboard/file/camel-routes.json/?var-project={{ .Values.serviceName }}&var-version={{ .Values.imageTag }}
@@ -9,6 +9,7 @@ metadata:
     version: "{{ .Values.imageTag }}"
   name: {{ .Values.serviceName }}
 spec:
+  serviceName: {{ .Values.serviceName }}
   replicas: {{ .Values.numOfPods | default 2 }}
   revisionHistoryLimit: 2
   selector:
@@ -88,7 +89,7 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode-alpha:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:

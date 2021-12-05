@@ -4,6 +4,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     krb5-kdc \ 
     krb5-admin-server \ 
     nano \
+    lsof \
     && rm -rf /var/lib/apt/lists/*
 
 ENV KEYTAB_DIR=/etc/security/keytabs
