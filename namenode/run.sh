@@ -74,9 +74,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.type kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.http.filter.initializers org.apache.hadoop.security.AuthenticationFilterInitializer,org.apache.hadoop.security.HttpCrossOriginFilterInitializer
-    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.token.max-inactive-interval -1
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.token.validity 36000
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.cookie.domain ${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE}
-    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.cookie.persistent true
+    addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.cookie.persistent false
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.signature.secret.file ${CERTS}/hadoop-http-auth-signature-secret
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.kerberos.principal HTTP/_HOST@${REALM}
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.kerberos.keytab ${KEYTAB_DIR}/merged-krb5.keytab

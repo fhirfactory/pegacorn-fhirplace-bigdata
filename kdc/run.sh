@@ -37,8 +37,6 @@ kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey jboss/peg
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k jboss.hdfs.keytab jboss/pegacorn-fhirplace-bigdata-api.site-a"
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k http.hdfs.keytab HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey HTTP/pegacorn-fhirplace-datanode-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k http.hdfs.keytab HTTP/pegacorn-fhirplace-datanode-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
 
 # secure datanode-alpha
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey dn/pegacorn-fhirplace-datanode-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"

@@ -33,7 +33,7 @@ URL === https://pegacorn-fhirplace-namenode.site-a:9871
 kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print $3'}
 
 # Deploy Worker Nodes (DataNodes) - <Stateful set to persist podname for domain authentication>
-docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode:1.0.0-snapshot --file Dockerfile .
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-alpha:1.0.0-snapshot --file Dockerfile .
 helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Avoid a URL re-direct

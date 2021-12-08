@@ -89,7 +89,7 @@ spec:
         resources:
           requests:
             memory: "{{ add 128 .Values.jvmMaxHeapSizeMB }}Mi"
-        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode:{{ .Values.imageTag }}            
+        image: {{ .Values.dockerRepo }}pegacorn-fhirplace-datanode-alpha:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
           tcpSocket:
