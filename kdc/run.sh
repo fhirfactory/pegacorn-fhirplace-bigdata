@@ -33,14 +33,14 @@ echo ""
 echo "========== Writing keytab to ${KEYTAB_DIR} ========== "
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k hdfs.keytab nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey jboss/pegacorn-fhirplace-bigdata-api.site-a@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k jboss.hdfs.keytab jboss/pegacorn-fhirplace-bigdata-api.site-a"
+kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey jboss@${REALM}"
+kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k jboss.hdfs.keytab jboss"
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
 kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k http.hdfs.keytab HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
 
 # secure datanode-alpha
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey dn/pegacorn-fhirplace-datanode-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k hdfs.keytab dn/pegacorn-fhirplace-datanode-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
+kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
+kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k hdfs.keytab dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
 echo ""
 
 echo "==================================================================================="
