@@ -1,32 +1,36 @@
-FROM debian:buster
+FROM alpine:3.15
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    krb5-kdc \ 
-    krb5-admin-server \ 
-    nano \
-    lsof \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache krb5-server \
+    krb5 \ 
+    supervisor \ 
+    tini \
+    busybox
+
+EXPOSE 88 464 749
 
 ENV KEYTAB_DIR=/etc/security/keytabs
 ENV KRB_LOG_DIR=/var/log/kerberos
 
-COPY kadm5.acl /etc/krb5kdc/kadm5.acl
-COPY kdc.conf /etc/krb5kdc/kdc.conf
-COPY krb5.conf /etc/krb5.conf
-RUN chmod -R 777 /etc/krb5kdc
-
 RUN mkdir -p /var/log/kerberos
 RUN mkdir -p /etc/security/keytabs
+RUN mkdir -p /etc/krb5kdc
+RUN chmod -R 777 /etc/krb5kdc
 
-COPY run.sh /run.sh
-RUN chmod a+x /run.sh
+COPY supervisord.conf /etc/supervisord.conf
+COPY kadm5.acl /etc/krb5kdc/kadm5.acl
+COPY kdc.conf /var/lib/krb5kdc/kdc.conf
+COPY krb5.conf /etc/krb5.conf
+
+# Kube Probes
+COPY healthy /tmp/healthy
 
 ARG IMAGE_BUILD_TIMESTAMP
 ENV IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 RUN echo IMAGE_BUILD_TIMESTAMP=${IMAGE_BUILD_TIMESTAMP}
 
-EXPOSE 88 749
+COPY run.sh /run.sh
+RUN chmod a+x /run.sh
 
-ENTRYPOINT ["/run.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD ["bash"]
+CMD ["/run.sh"]

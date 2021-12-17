@@ -11,7 +11,12 @@ ENV CERTS=/etc/hadoop/ssl
 
 RUN mkdir -p /hadoop/dfs/datanode
 RUN mkdir -p /etc/hadoop/ssl
-COPY hadoop-env.sh /opt/hadoop-3.3.0/etc/hadoop/hadoop-env.sh
+
+# Add users to HDFS
+RUN addgroup pegacorn
+RUN adduser jboss --no-create-home --disabled-password --gecos ""
+RUN usermod -aG pegacorn jboss
+
 
 # Kerberos configuration
 COPY krb5.conf /etc/krb5.conf

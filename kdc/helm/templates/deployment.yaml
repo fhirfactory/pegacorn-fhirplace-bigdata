@@ -30,11 +30,6 @@ spec:
       hostNetwork: true
       containers:
       - env:
-        - name: KDC_PASSWORD
-          valueFrom:
-           secretKeyRef:
-            name: {{ .Values.serviceName }}-secrets
-            key: kdcPassword
         - name: KUBERNETES_SERVICE_NAME
           value: {{ .Values.serviceName }}
         - name: {{ upper .Values.serviceName | replace "-" "_" }}_{{ upper .Release.Namespace | replace "-" "_" }}_KUBERNETES_SERVICE_NAME
@@ -74,9 +69,12 @@ spec:
         image: {{ .Values.dockerRepo }}pegacorn-fhirplace-kdcserver:{{ .Values.imageTag }}            
         imagePullPolicy: {{ .Values.imagePullPolicy | default "IfNotPresent" }}
         livenessProbe:
-          tcpSocket:
-            port: 88
-          initialDelaySeconds: 15
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 10
+          periodSeconds: 5
         name: kdc-server
         ports:
         - containerPort: 9779
@@ -88,10 +86,16 @@ spec:
         - containerPort: 749
           name: kdc-admin
           protocol: TCP
+        - containerPort: 9001
+          name: supervisor
+          protocol: TCP
         readinessProbe:
-          tcpSocket:
-            port: 88
-          initialDelaySeconds: 15
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 10
+          periodSeconds: 5
         securityContext:
           privileged: false
         volumeMounts:

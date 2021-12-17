@@ -10,7 +10,6 @@ ENV KEYTAB_DIR=/etc/security/keytabs
 ENV CERTS=/etc/hadoop/ssl
 
 RUN mkdir -p /hadoop/dfs/namenode
-RUN mkdir -p /etc/security/keytabs
 RUN mkdir -p /etc/hadoop/ssl
 
 # Add users to HDFS

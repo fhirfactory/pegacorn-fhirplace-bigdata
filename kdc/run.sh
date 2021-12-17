@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -6,7 +6,7 @@ set -e
 # Ref: https://github.com/dosvath/kerberos-containers/blob/master/kdc-server/init-script.sh
 
 echo ${MY_HOST_IP} ${MY_NODE_NAME} >> /etc/hosts
-sed -i "s/realmValue/${REALM}/g" /etc/krb5kdc/kdc.conf
+sed -i "s/realmValue/${REALM}/g" /var/lib/krb5kdc/kdc.conf
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
 sed -i "s/kdcserver/${MY_NODE_NAME}:88/g" /etc/krb5.conf
 sed -i "s/kdcadmin/${MY_NODE_NAME}:749/g" /etc/krb5.conf
@@ -15,32 +15,35 @@ echo "==== Creating realm ======================================================
 echo "==================================================================================="
 KADMIN_PRINCIPAL=root/admin
 KADMIN_PRINCIPAL_FULL=$KADMIN_PRINCIPAL@$REALM
-# This command also starts the krb5-kdc and krb5-admin-server services
-krb5_newrealm <<EOF
-$KDC_PASSWORD
-$KDC_PASSWORD
-EOF
+MASTER_PASSWORD=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w30 | head -n1)
+
+kdb5_util create -r "$REALM" -s -P ${MASTER_PASSWORD}
 echo ""
 
 echo "==================================================================================="
-echo "======== Creating hdfs principal in the acl ======================================="
+echo "======== Creating admin account ==================================================="
 echo "==================================================================================="
 echo "Adding $KADMIN_PRINCIPAL principal"
 echo ""
-kadmin.local -q "addprinc -pw $KDC_PASSWORD $KADMIN_PRINCIPAL_FULL"
+kadmin.local -q "addprinc -pw ${MASTER_PASSWORD} ${KADMIN_PRINCIPAL_FULL}"
 echo ""
 
 echo "========== Writing keytab to ${KEYTAB_DIR} ========== "
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k hdfs.keytab nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey jboss@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k jboss.hdfs.keytab jboss"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k http.hdfs.keytab HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
+# Namenode Keytab
+kadmin.local -q "add_principal -randkey  nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
+kadmin.local -q "ktadd -norandkey -k hdfs.keytab nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
 
-# secure datanode-alpha
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "addprinc -randkey dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
-kadmin -p ${KADMIN_PRINCIPAL} -w ${KDC_PASSWORD} -q "xst -k hdfs.keytab dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
+# Datanode alpha Keytab
+kadmin.local -q "add_principal -randkey  dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
+kadmin.local -q "ktadd -norandkey -k hdfs.keytab dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
+
+# SPNEGO keytab
+kadmin.local -q "add_principal -randkey  HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"
+kadmin.local -q "ktadd -norandkey -k http.hdfs.keytab HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
+
+# JBoss client Keytab
+kadmin.local -q "add_principal -randkey  jboss@${REALM}"
+kadmin.local -q "ktadd -norandkey -k jboss.hdfs.keytab jboss"
 echo ""
 
 echo "==================================================================================="
@@ -58,9 +61,9 @@ printf "%b" "read_kt ${KEYTAB_DIR}/hdfs.keytab\nread_kt ${KEYTAB_DIR}/http.hdfs.
 printf "%b" "read_kt ${KEYTAB_DIR}/hdfs.keytab\nread_kt ${KEYTAB_DIR}/jboss.hdfs.keytab\nwrite_kt ${KEYTAB_DIR}/hbase-krb5.keytab\nquit" | ktutil
 printf "%b" "read_kt ${KEYTAB_DIR}/merged-krb5.keytab\nlist" | ktutil
 printf "%b" "read_kt ${KEYTAB_DIR}/hbase-krb5.keytab\nlist" | ktutil
+echo ""
 
-echo "==================================================================================="
-echo "========== Changing permissions on Keytab files ======================"
+echo "========== Changing permissions on Keytab files ==================================="
 echo ""
 chmod 444 ${KEYTAB_DIR}/hdfs.keytab
 chmod 444 ${KEYTAB_DIR}/merged-krb5.keytab
@@ -69,8 +72,6 @@ chmod 777 ${KEYTAB_DIR}/hbase-krb5.keytab
 ls -lah ${KEYTAB_DIR}
 echo ""
 
-echo "KDC Server Configuration Successful"
+echo "========== KDC Server Configuration Successful ===================================="
 
-ping -i 3600 ${MY_HOST_IP} >> ${KEYTAB_DIR}/keepalive.log
-
-exec "$@"
+/usr/bin/supervisord -c /etc/supervisord.conf -n
