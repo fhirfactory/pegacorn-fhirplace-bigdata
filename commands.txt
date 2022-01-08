@@ -1,4 +1,7 @@
-kubectl create secret generic pegacorn-fhirplace-kdcserver-secrets --from-literal=kdcPassword="Peg@c0rnKdC" --namespace=site-a
+kubectl create secret generic pegacorn-fhirplace-namenode-secrets --from-literal=keyPassword="Peg@cornK3yNM" --from-literal=truststorePassword="Peg@cornTrustSt0re" --namespace=site-a
+kubectl create secret generic pegacorn-fhirplace-datanode-alpha-secrets --from-literal=keyPassword="Peg@cornK3yDSa" --from-literal=truststorePassword="Peg@cornTrustSt0re" --namespace=site-a
+kubectl create secret generic pegacorn-fhirplace-datanode-beta-secrets --from-literal=keyPassword="Peg@cornK3yDSbE" --from-literal=truststorePassword="Peg@cornTrustSt0re" --namespace=site-a
+
 
 # Build base image
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
@@ -36,5 +39,9 @@ kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-alpha:1.0.0-snapshot --file Dockerfile .
 helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
+docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-beta:1.0.0-snapshot --file Dockerfile .
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-beta,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
+
 # Avoid a URL re-direct
 https://pegacorn-fhirplace-datanode-alpha.site-a:9865/datanode.html
+https://pegacorn-fhirplace-datanode-beta.site-a:9865/datanode.html

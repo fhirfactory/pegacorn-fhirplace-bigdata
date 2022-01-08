@@ -23,7 +23,6 @@ RUN mkdir -p /var/log/kerberos
 RUN mkdir -p /etc/security/keytabs
 RUN mkdir -p /etc/hadoop/ssl
 RUN chmod -R 444 /etc/hadoop/ssl
-COPY ssl-client.xml /etc/hadoop/ssl-client.xml
 COPY ssl-server.xml /etc/hadoop/ssl-server.xml
 
 ARG IMAGE_BUILD_TIMESTAMP

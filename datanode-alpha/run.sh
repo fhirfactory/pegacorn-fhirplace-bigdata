@@ -8,14 +8,13 @@ rm -f /hadoop/dfs/datanode/in_use.lock
 fi
 
 # kerberos client
-echo ${MY_HOST_IP} ${MY_NODE_NAME} >> /etc/hosts
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
-sed -i "s/kdcserver/${MY_NODE_NAME}:88/g" /etc/krb5.conf
-sed -i "s/kdcadmin/${MY_NODE_NAME}:749/g" /etc/krb5.conf
+sed -i "s/kdcserver/pegacorn-fhirplace-kdcserver-0.pegacorn-fhirplace-kdcserver.site-a/g" /etc/krb5.conf
+sed -i "s/kdcadmin/pegacorn-fhirplace-kdcserver-0.pegacorn-fhirplace-kdcserver.site-a/g" /etc/krb5.conf
 
 echo "==== Authenticating to realm ==============================================================="
 echo "==================================================================================="
-KRB5_TRACE=/dev/stderr kinit dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM} -kt ${KEYTAB_DIR}/merged-krb5.keytab -V &
+KRB5_TRACE=/dev/stderr kinit -f dna/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM} -kt ${KEYTAB_DIR}/merged-krb5.keytab -V &
 wait -n
 echo "Datanode-alpha TGT completed."
 echo ""
@@ -59,15 +58,14 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # CORE
-    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${NAMENODE_IP}:9820
+    addProperty /etc/hadoop/core-site.xml fs.defaultFS hdfs://${NAMENODE_IP}:8020
     addProperty /etc/hadoop/core-site.xml hadoop.security.authentication kerberos
     addProperty /etc/hadoop/core-site.xml hadoop.security.authorization false
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.require.client.cert false
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.hostname.verifier ALLOW_ALL
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.keystores.factory.class org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory
     addProperty /etc/hadoop/core-site.xml hadoop.ssl.server.conf ssl-server.xml
-    addProperty /etc/hadoop/core-site.xml hadoop.ssl.client.conf ssl-client.xml
-    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection authentication,integrity,privacy
+    addProperty /etc/hadoop/core-site.xml hadoop.rpc.protection privacy
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.type simple
     addProperty /etc/hadoop/core-site.xml hadoop.http.filter.initializers org.apache.hadoop.security.AuthenticationFilterInitializer,org.apache.hadoop.security.HttpCrossOriginFilterInitializer
     addProperty /etc/hadoop/core-site.xml hadoop.http.authentication.signature.secret.file ${CERTS}/hadoop-http-auth-signature-secret
@@ -76,20 +74,22 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 1
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal dna/_HOST@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/merged-krb5.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.address 0.0.0.0:9866
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.https.address 0.0.0.0:9865
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.ipc.address 0.0.0.0:9867
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${NAMENODE_IP}:9871
     addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
     addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname false
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
-    addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection authentication,integrity,privacy
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${NAMENODE_IP}:9871
+    addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection privacy
+    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer.algorithm rc4
 fi
 
 

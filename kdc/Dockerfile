@@ -4,9 +4,11 @@ RUN apk add --no-cache krb5-server \
     krb5 \ 
     supervisor \ 
     tini \
-    busybox
+    busybox-extras \
+    openrc \
+    lsof
 
-EXPOSE 88 464 749
+EXPOSE 88 749 750
 
 ENV KEYTAB_DIR=/etc/security/keytabs
 ENV KRB_LOG_DIR=/var/log/kerberos

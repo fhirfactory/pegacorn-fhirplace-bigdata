@@ -5,11 +5,10 @@ set -e
 # Kerberos KDC server configuration
 # Ref: https://github.com/dosvath/kerberos-containers/blob/master/kdc-server/init-script.sh
 
-echo ${MY_HOST_IP} ${MY_NODE_NAME} >> /etc/hosts
 sed -i "s/realmValue/${REALM}/g" /var/lib/krb5kdc/kdc.conf
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
-sed -i "s/kdcserver/${MY_NODE_NAME}:88/g" /etc/krb5.conf
-sed -i "s/kdcadmin/${MY_NODE_NAME}:749/g" /etc/krb5.conf
+sed -i "s/kdcserver/${MY_POD_NAME}.${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE}/g" /etc/krb5.conf
+sed -i "s/kdcadmin/${MY_POD_NAME}.${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE}/g" /etc/krb5.conf
 
 echo "==== Creating realm ==============================================================="
 echo "==================================================================================="
@@ -34,8 +33,12 @@ kadmin.local -q "add_principal -randkey  nn/pegacorn-fhirplace-namenode-0.pegaco
 kadmin.local -q "ktadd -norandkey -k hdfs.keytab nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local"
 
 # Datanode alpha Keytab
-kadmin.local -q "add_principal -randkey  dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
-kadmin.local -q "ktadd -norandkey -k hdfs.keytab dn/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
+kadmin.local -q "add_principal -randkey  dna/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local@${REALM}"
+kadmin.local -q "ktadd -norandkey -k hdfs.keytab dna/pegacorn-fhirplace-datanode-alpha-0.pegacorn-fhirplace-datanode-alpha.site-a.svc.cluster.local"
+
+# Datanode beta Keytab
+kadmin.local -q "add_principal -randkey  dnb/pegacorn-fhirplace-datanode-beta-0.pegacorn-fhirplace-datanode-beta.site-a.svc.cluster.local@${REALM}"
+kadmin.local -q "ktadd -norandkey -k hdfs.keytab dnb/pegacorn-fhirplace-datanode-beta-0.pegacorn-fhirplace-datanode-beta.site-a.svc.cluster.local"
 
 # SPNEGO keytab
 kadmin.local -q "add_principal -randkey  HTTP/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM}"

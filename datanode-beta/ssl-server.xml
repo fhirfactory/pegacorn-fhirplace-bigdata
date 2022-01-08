@@ -20,14 +20,14 @@
 
 <property>
   <name>ssl.server.truststore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-datanode-beta.site-a-cert.jks</value>
+  <value>/etc/hadoop/ssl/truststore.jks</value>
   <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
   <name>ssl.server.truststore.password</name>
-  <value>Peg@cornTrustSt0reDSbE</value>
+  <value>${env.TRUSTSTORE_PASSWORD}</value>
   <description>Optional. Default value is "".
   </description>
 </property>
@@ -49,14 +49,14 @@
 
 <property>
   <name>ssl.server.keystore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-datanode-beta.site-a.jks</value>
+  <value>/etc/hadoop/ssl/${env.KUBERNETES_SERVICE_NAME}.${env.KUBERNETES_NAMESPACE}.jks</value>
   <description>Keystore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
   <name>ssl.server.keystore.password</name>
-  <value>Peg@cornK3yDSbE</value>
+  <value>${env.KEY_PASSWORD}</value>
   <description>Must be specified</description>
 </property>
 
@@ -69,8 +69,9 @@
 
 <property>
   <name>ssl.server.keystore.keypassword</name>
-  <value>Peg@cornK3yDSbE</value>
-  <description>Must be specified</description>
+  <value>${env.KEY_PASSWORD}</value>
+  <description>If dfs.https.server.keystore.resource is specified, make sure it is a relative path.
+  </description>
 </property>
 
 </configuration>

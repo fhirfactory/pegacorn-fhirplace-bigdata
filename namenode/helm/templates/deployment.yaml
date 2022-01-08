@@ -30,6 +30,16 @@ spec:
       {{- end }}
       containers:
       - env:
+        - name: TRUSTSTORE_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: {{ .Values.serviceName }}-secrets
+            key: truststorePassword
+        - name: KEY_PASSWORD
+          valueFrom:
+           secretKeyRef:
+            name: {{ .Values.serviceName }}-secrets
+            key: keyPassword
         - name: KUBERNETES_SERVICE_NAME
           value: {{ .Values.serviceName }}
         - name: {{ upper .Values.serviceName | replace "-" "_" }}_{{ upper .Release.Namespace | replace "-" "_" }}_KUBERNETES_SERVICE_NAME
@@ -93,11 +103,8 @@ spec:
         - containerPort: 8778
           name: jolokia
           protocol: TCP
-        - containerPort: 9820
+        - containerPort: 8020
           name: namenode
-          protocol: TCP
-        - containerPort: 9000
-          name: master-port
           protocol: TCP
         - containerPort: 9871
           name: hadoop-web

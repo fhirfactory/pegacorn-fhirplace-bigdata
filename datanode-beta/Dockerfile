@@ -10,8 +10,12 @@ ENV KEYTAB_DIR=/etc/security/keytabs
 ENV CERTS=/etc/hadoop/ssl
 
 RUN mkdir -p /hadoop/dfs/datanode
-RUN mkdir -p /etc/hadoop/ssl
-COPY hadoop-env.sh /opt/hadoop-3.3.0/etc/hadoop/hadoop-env.sh
+
+# Add users to HDFS
+RUN addgroup pegacorn
+RUN adduser jboss --no-create-home --disabled-password --gecos ""
+RUN usermod -aG pegacorn jboss
+
 
 # Kerberos configuration
 COPY krb5.conf /etc/krb5.conf
@@ -19,7 +23,6 @@ RUN mkdir -p /var/log/kerberos
 RUN mkdir -p /etc/security/keytabs
 RUN mkdir -p /etc/hadoop/ssl
 RUN chmod -R 444 /etc/hadoop/ssl
-COPY ssl-client.xml /etc/hadoop/ssl-client.xml
 COPY ssl-server.xml /etc/hadoop/ssl-server.xml
 
 ARG IMAGE_BUILD_TIMESTAMP
