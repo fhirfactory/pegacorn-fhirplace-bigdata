@@ -19,9 +19,11 @@ wait -n
 echo "Datanode-alpha TGT completed."
 echo ""
 
-# certificates
+# add trusted root CA to Docker alpine
 cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
-update-ca-certificates --verbose
+# update-ca-certificates --verbose --> "WARNING: ca-certificates.crt does not contain exactly one certificate or CRL: skipping"
+# concatenate root certificate as workaround
+cat /usr/local/share/ca-certificates/ca.cer >> /etc/ssl/certs/ca-certificates.crt
 
 function addProperty() {
   local path=$1
@@ -73,7 +75,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
 
     # HDFS
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 1
-    addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
+    addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup jboss
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.kerberos.principal dna/_HOST@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.keytab.file ${KEYTAB_DIR}/merged-krb5.keytab
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
@@ -87,7 +89,6 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname false
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
-    addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
     addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection privacy
     addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer.algorithm rc4
 fi

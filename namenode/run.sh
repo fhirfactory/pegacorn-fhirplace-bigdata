@@ -12,11 +12,12 @@ echo ${MY_POD_IP} ${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE} >> /etc/hos
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
 sed -i "s/kdcserver/pegacorn-fhirplace-kdcserver-0.pegacorn-fhirplace-kdcserver.site-a/g" /etc/krb5.conf
 sed -i "s/kdcadmin/pegacorn-fhirplace-kdcserver-0.pegacorn-fhirplace-kdcserver.site-a/g" /etc/krb5.conf
-# sed -i ""
 
-# certificates
+# add trusted root CA to Docker alpine
 cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
-update-ca-certificates --verbose
+# update-ca-certificates --verbose --> "WARNING: ca-certificates.crt does not contain exactly one certificate or CRL: skipping"
+# concatenate root certificate as workaround
+cat /usr/local/share/ca-certificates/ca.cer >> /etc/ssl/certs/ca-certificates.crt
 
 echo "==== Authenticating to realm ==============================================================="
 echo "============================================================================================"
@@ -90,7 +91,7 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
     addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer true
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
-    addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup pegacorn
+    addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup jboss
     addProperty /etc/hadoop/hdfs-site.xml dfs.replication 1
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.address 0.0.0.0:9866
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.https.address 0.0.0.0:9865

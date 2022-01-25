@@ -1,0 +1,61 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00000000000068c6, pid=144, tid=169
+#
+# JRE version: OpenJDK Runtime Environment (11.0.13+8) (build 11.0.13+8-alpine-r0)
+# Java VM: OpenJDK 64-Bit Server VM (11.0.13+8-alpine-r0, mixed mode, tiered, compressed oops, serial gc, linux-amd64)
+# Problematic frame:
+# C  0x00000000000068c6
+#
+# No core dump will be written. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# An error report file with more information is saved as:
+# //hs_err_pid144.log
+#
+# If you would like to submit a bug report, please visit:
+#   https://gitlab.alpinelinux.org/alpine/aports/issues
+# The crash happened outside the Java Virtual Machine in native code.
+# See problematic frame for where to report the bug.
+# Above error in Datanodes only
+
+FROM alpine:3.15
+
+# Set JAVA home path
+ENV JAVA_HOME /usr/lib/jvm/default-jvm
+
+# Install Java 11 and other packages
+RUN apk add --no-cache curl \
+    ca-certificates \
+    gnupg \
+    perl \
+    bash \
+    openjdk11 \
+    tzdata \ 
+    && rm -rf /var/cache/apk/*
+
+# Has to be set explictly to find binaries 
+ENV PATH=$PATH:${JAVA_HOME}/bin
+
+RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
+
+RUN gpg --import KEYS
+
+ENV HADOOP_VERSION 3.3.0
+ENV HADOOP_URL https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz
+
+RUN set -x \
+    && curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz \
+    && curl -fSL "$HADOOP_URL.asc" -o /tmp/hadoop.tar.gz.asc \
+    && gpg --verify /tmp/hadoop.tar.gz.asc \
+    && tar -xvf /tmp/hadoop.tar.gz -C /opt/ \
+    && rm /tmp/hadoop.tar.gz*
+
+RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
+
+RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
+
+ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
+ENV HADOOP_CONF_DIR=/etc/hadoop
+ENV USER=root
+ENV PATH $HADOOP_HOME/bin/:$PATH

@@ -1,6 +1,9 @@
 FROM fhirfactory/pegacorn-base-hadoop:1.0.0
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install apt-transport-https krb5-user
+# Install Kerberos client
+RUN apk add --update --no-cache krb5 \
+    krb5-pkinit \
+    && rm -rf /var/cache/apk/*
 
 HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1
 
@@ -8,14 +11,12 @@ ENV MULTIHOMED_NETWORK=1
 ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/datanode
 ENV KEYTAB_DIR=/etc/security/keytabs
 ENV CERTS=/etc/hadoop/ssl
+ENV TZ="Australia/Sydney"
 
 RUN mkdir -p /hadoop/dfs/datanode
 
-# Add users to HDFS
-RUN addgroup pegacorn
-RUN adduser jboss --no-create-home --disabled-password --gecos ""
-RUN usermod -aG pegacorn jboss
-
+# Create a group and user and disable user login
+RUN addgroup -g 1000 -S jboss && adduser -u 1000 -S jboss -G jboss -D -s /sbin/nologin jboss
 
 # Kerberos configuration
 COPY krb5.conf /etc/krb5.conf

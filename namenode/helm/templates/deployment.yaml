@@ -78,8 +78,6 @@ spec:
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
         - name: CLUSTER_NAME
           value: {{ .Values.clusterName }}
-        - name: KDC_SERVER
-          value: 192.168.2.25
         - name: REALM
           value: PEGACORN-FHIRPLACE-AUDIT.LOCAL
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 

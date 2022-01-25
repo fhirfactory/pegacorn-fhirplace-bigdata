@@ -1,17 +1,18 @@
 FROM alpine:3.15
 
 RUN apk add --no-cache krb5-server \
-    krb5 \ 
+    krb5 \
+    krb5-pkinit \ 
     supervisor \ 
     tini \
-    busybox-extras \
-    openrc \
-    lsof
+    tzdata \
+    && rm -rf /var/cache/apk/*
 
 EXPOSE 88 749 750
 
 ENV KEYTAB_DIR=/etc/security/keytabs
 ENV KRB_LOG_DIR=/var/log/kerberos
+ENV TZ="Australia/Sydney"
 
 RUN mkdir -p /var/log/kerberos
 RUN mkdir -p /etc/security/keytabs

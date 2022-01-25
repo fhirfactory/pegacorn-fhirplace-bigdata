@@ -4,7 +4,7 @@ kubectl create secret generic pegacorn-fhirplace-datanode-beta-secrets --from-li
 
 
 # Build base image
-docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
+docker build --rm -t pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
 
 # Deploy Kerberos KDC server -- <as Host Network>
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-kdcserver:1.0.0-snapshot --file Dockerfile .
@@ -20,6 +20,9 @@ helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --s
 # To view the Namenode Web UI - curl to retrieve token credentials set by "hadoop.auth"
 # Run curl command inside namenode pod
 curl -i --insecure --negotiate -u : https://pegacorn-fhirplace-namenode.site-a:9871/webhdfs/v1/?op=LISTSTATUS
+
+# Docker issue raised for SPNEGO curl in Alpine
+https://github.com/curl/curl-docker/issues/51
 
 # Cookies are manually set because SPNEGO auth does not recognise the host name of the container (e.g. pegacorn-fhirplace-namenode-754857fd9b-mzdrk)
 Error message:
