@@ -20,15 +20,14 @@
 
 <property>
   <name>ssl.client.truststore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-bigdata-api.site-a-cert.jks</value>
-  <description>Truststore to be used by clients like distcp. Must be
-  specified.
+  <value>/etc/hadoop/ssl/truststore.jks</value>
+  <description>Truststore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
   <name>ssl.client.truststore.password</name>
-  <value>Peg@cornTrustSt0reHD</value>
+  <value>${env.TRUSTSTORE_PASSWORD}</value>
   <description>Optional. Default value is "".
   </description>
 </property>
@@ -50,24 +49,15 @@
 
 <property>
   <name>ssl.client.keystore.location</name>
-  <value>/etc/hadoop/ssl/pegacorn-fhirplace-bigdata-api.site-a.jks</value>
-  <description>Keystore to be used by clients like distcp. Must be
-  specified.
+  <value>/etc/hadoop/ssl/${env.KUBERNETES_SERVICE_NAME}.${env.KUBERNETES_NAMESPACE}.jks</value>
+  <description>Keystore to be used by NN and DN. Must be specified.
   </description>
 </property>
 
 <property>
   <name>ssl.client.keystore.password</name>
-  <value>Peg@cornK3yHD</value>
-  <description>Optional. Default value is "".
-  </description>
-</property>
-
-<property>
-  <name>ssl.client.keystore.keypassword</name>
-  <value>Peg@cornK3yHD</value>
-  <description>Optional. Default value is "".
-  </description>
+  <value>${env.KEY_PASSWORD}</value>
+  <description>Must be specified</description>
 </property>
 
 <property>
@@ -76,4 +66,12 @@
   <description>Optional. The keystore file format, default value is "jks".
   </description>
 </property>
+
+<property>
+  <name>ssl.client.keystore.keypassword</name>
+  <value>${env.KEY_PASSWORD}</value>
+  <description>If dfs.https.server.keystore.resource is specified, make sure it is a relative path.
+  </description>
+</property>
+
 </configuration>
