@@ -4,7 +4,7 @@ kubectl create secret generic pegacorn-fhirplace-datanode-beta-secrets --from-li
 
 
 # Build base image
-docker build --rm -t pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
+docker build --rm -t fhirfactory/pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
 
 # Deploy Kerberos KDC server -- <as Host Network>
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-kdcserver:1.0.0-snapshot --file Dockerfile .
