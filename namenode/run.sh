@@ -7,6 +7,9 @@ echo "removing existing filelock : /hadoop/dfs/namenode/in_use.lock"
 rm -f /hadoop/dfs/namenode/in_use.lock
 fi
 
+# export HADOOP_JAAS_DEBUG=true
+# export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug"
+
 # kerberos client
 echo ${MY_POD_IP} ${KUBERNETES_SERVICE_NAME}.${KUBERNETES_NAMESPACE} >> /etc/hosts
 sed -i "s/realmValue/${REALM}/g" /etc/krb5.conf
@@ -19,6 +22,7 @@ cp ${CERTS}/ca.cer /usr/local/share/ca-certificates
 # concatenate root certificate as workaround
 cat /usr/local/share/ca-certificates/ca.cer >> /etc/ssl/certs/ca-certificates.crt
 
+echo ""
 echo "==== Authenticating to realm ==============================================================="
 echo "============================================================================================"
 KRB5_TRACE=/dev/stderr kinit -f nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@${REALM} -kt ${KEYTAB_DIR}/merged-krb5.keytab -V &
@@ -87,8 +91,8 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host ${MY_POD_IP}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host ${MY_POD_IP}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.datanode.registration.ip-hostname-check false
-    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname false
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname false
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
     addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer true
     addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.permissions.superusergroup jboss
@@ -97,10 +101,9 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.https.address 0.0.0.0:9865
     addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.ipc.address 0.0.0.0:9867
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-address ${MY_POD_IP}:9871
-    addProperty /etc/hadoop/hdfs-site.xml dfs.block.access.token.enable true
     addProperty /etc/hadoop/hdfs-site.xml dfs.client.https.need-auth false
     addProperty /etc/hadoop/hdfs-site.xml dfs.data.transfer.protection privacy
-    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer.algorithm rc4
+    addProperty /etc/hadoop/hdfs-site.xml dfs.encrypt.data.transfer.cipher.suites AES/CTR/NoPadding
     addProperty /etc/hadoop/hdfs-site.xml dfs.http.policy HTTPS_ONLY
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.kerberos.principal nn/_HOST@${REALM}
     addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.keytab.file ${KEYTAB_DIR}/merged-krb5.keytab

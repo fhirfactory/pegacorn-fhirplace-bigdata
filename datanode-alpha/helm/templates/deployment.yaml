@@ -86,8 +86,8 @@ spec:
               fieldPath: spec.serviceAccountName
         - name: JVM_MAX_HEAP_SIZE
           value: "{{ .Values.jvmMaxHeapSizeMB }}m"
-        - name: NAMENODE_IP
-          value: 10.152.183.187
+        - name: NAMENODE_HOST
+          value: {{ .Values.namenodeHost }}
         - name: REALM
           value: PEGACORN-FHIRPLACE-AUDIT.LOCAL
         # Set the minimum memory that will be available on the node to assign to the container to be the jvmMaxHeapSizeMB plus 128 MB 

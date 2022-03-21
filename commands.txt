@@ -6,28 +6,34 @@ kubectl create secret generic pegacorn-fhirplace-datanode-beta-secrets --from-li
 # Build base image
 docker build --rm -t fhirfactory/pegacorn-base-hadoop:1.0.0 --file Dockerfile . // Do not run command
 
-# Deploy Kerberos KDC server -- <as Host Network>
+# Deploy Kerberos KDC server -- <Stateful set to persist podname for domain authentication>
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-kdcserver:1.0.0-snapshot --file Dockerfile .
 
 helm upgrade pegacorn-fhirplace-kdcserver-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-kdcserver,imagePullPolicy=Never,hostPathKeytab=/data/kdc-keytab,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Deploy Master Node (NameNode) - <Stateful set to persist podname for domain authentication>
+# A Stateful pod can translate the hadoop configurations for SPNEGO authentication: "HTTP/_HOST"
+# HOST is the hostname of the pod which MUST be the same as the Namenode principal hostname
+
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-namenode:1.0.0-snapshot --file Dockerfile .
 
 helm upgrade pegacorn-fhirplace-namenode-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-namenode,imagePullPolicy=Never,hostPathNamenode=/data/hadoop-namenode,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,clusterName=Pegacorn,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Kerberos Enabled cluster 
-# To view the Namenode Web UI - curl to retrieve token credentials set by "hadoop.auth"
-# Run curl command inside namenode pod
+# To view the Namenode Web UI (https://pegacorn-fhirplace-namenode.site-a:9871) - you should get a " HTTP 401 error - authentication required ". This is expected and confirms the DFS cannot be accessed without adequate SPNEGO authentication.
+# To authenticate in the browser, execute curl command inside namenode pod to retrieve token credentials set by "hadoop.auth" (**currently it does not work in Alpine, however it works in the Debian based image)
 curl -i --insecure --negotiate -u : https://pegacorn-fhirplace-namenode.site-a:9871/webhdfs/v1/?op=LISTSTATUS
+
+Alpine error:
+" Error message ::==::==> curl: option --negotiate: the installed libcurl version doesn't support this "
 
 # Docker issue raised for SPNEGO curl in Alpine
 https://github.com/curl/curl-docker/issues/51
 
-# Cookies are manually set because SPNEGO auth does not recognise the host name of the container (e.g. pegacorn-fhirplace-namenode-754857fd9b-mzdrk)
-Error message:
+# Cookies are manually set in the browser because SPNEGO auth does not recognise the stateless host name of the pod (e.g. pegacorn-fhirplace-namenode-754857fd9b-mzdrk)
+" Error message:
 Dec 04 16:32:48 nodeprivnet krb5kdc[19](info): TGS_REQ (8 etypes {18 17 20 19 16 23 25 26}) 10.1.106.110: LOOKING_UP_SERVER: authtime 0,  nn/nodeprivnet@PEGACORN-FHIRPLACE-AUDIT.LOCAL for HTTP/pegacorn-fhirplace-namenode-754857fd9b-mzdrk@PEGACORN-FHIRPLACE-AUDIT.LOCAL, Server not found in Kerberos database
-Dec 04 16:32:48 nodeprivnet krb5kdc[19](info): TGS_REQ (8 etypes {18 17 20 19 16 23 25 26}) 10.1.106.110: LOOKING_UP_SERVER: authtime 0,  nn/nodeprivnet@PEGACORN-FHIRPLACE-AUDIT.LOCAL for HTTP/pegacorn-fhirplace-namenode-754857fd9b-mzdrk@PEGACORN-FHIRPLACE-AUDIT.LOCAL, Server not found in Kerberos database
+Dec 04 16:32:48 nodeprivnet krb5kdc[19](info): TGS_REQ (8 etypes {18 17 20 19 16 23 25 26}) 10.1.106.110: LOOKING_UP_SERVER: authtime 0,  nn/nodeprivnet@PEGACORN-FHIRPLACE-AUDIT.LOCAL for HTTP/pegacorn-fhirplace-namenode-754857fd9b-mzdrk@PEGACORN-FHIRPLACE-AUDIT.LOCAL, Server not found in Kerberos database "
 
 # In Firefox, set cookie -- it should be similar to the below:
 document.cookie="hadoop.auth=u=nn&p=nn/pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local@PEGACORN-FHIRPLACE-AUDIT.LOCAL&t=kerberos&e=1638673503737&s=yx0JsTJPLypoPf3+WEhsZpSYCqTgePKdQS+HMCxmsT8=; path=/; Secure"
@@ -40,10 +46,10 @@ kubectl get svc pegacorn-fhirplace-namenode -n site-a --no-headers | awk {'print
 
 # Deploy Worker Nodes (DataNodes) - <Stateful set to persist podname for domain authentication>
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-alpha:1.0.0-snapshot --file Dockerfile .
-helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-alpha-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-alpha,imagePullPolicy=Never,namenodeHost=pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local,hostPathDatanode=/data/hadoop-datanode-alpha,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 docker build --rm --build-arg IMAGE_BUILD_TIMESTAMP="%date% %time%" -t pegacorn-fhirplace-datanode-beta:1.0.0-snapshot --file Dockerfile .
-helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,imagePullPolicy=Never,hostPathDatanode=/data/hadoop-datanode-beta,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
+helm upgrade pegacorn-fhirplace-datanode-beta-site-a --install --namespace site-a --set serviceName=pegacorn-fhirplace-datanode-beta,imagePullPolicy=Never,namenodeHost=pegacorn-fhirplace-namenode-0.pegacorn-fhirplace-namenode.site-a.svc.cluster.local,hostPathDatanode=/data/hadoop-datanode-beta,hostPathKeytab=/data/kdc-keytab,hostPathConfig=/data/certificates,imageTag=1.0.0-snapshot,numOfPods=1 helm
 
 # Avoid a URL re-direct
 https://pegacorn-fhirplace-datanode-alpha.site-a:9865/datanode.html

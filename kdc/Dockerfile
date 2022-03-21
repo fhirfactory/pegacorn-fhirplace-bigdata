@@ -2,7 +2,6 @@ FROM alpine:3.15
 
 RUN apk add --no-cache krb5-server \
     krb5 \
-    krb5-pkinit \ 
     supervisor \ 
     tini \
     tzdata \

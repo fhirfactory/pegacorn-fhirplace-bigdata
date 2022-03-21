@@ -2,7 +2,6 @@ FROM fhirfactory/pegacorn-base-hadoop:1.0.0
 
 # Install Kerberos client
 RUN apk add --update --no-cache krb5 \
-    krb5-pkinit \
     && rm -rf /var/cache/apk/*
 
 HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1
